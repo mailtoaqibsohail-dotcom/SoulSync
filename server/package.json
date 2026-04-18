@@ -4,7 +4,7 @@
   "description": "Dating app backend — auth, matching, chat",
   "main": "server.js",
   "scripts": {
-    "build": "npm --prefix ../client install && npm --prefix ../client run build",
+    "build": "npm --prefix ../../client install && npm --prefix ../../client run build",
     "start": "npm run build && node server.js",
     "dev": "nodemon server.js"
   },
