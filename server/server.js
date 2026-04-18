@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
+const path = require('path');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -23,6 +24,9 @@ initSocket(io);
 
 // ── Connect DB ────────────────────────────────────────────
 connectDB();
+
+// ── Static files (React build) ────────────────────────────
+app.use(express.static(path.join(__dirname, '../client/build')));
 
 // ── Middleware ────────────────────────────────────────────
 app.use(cors({
@@ -56,13 +60,13 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ── Root route ────────────────────────────────────────────
-app.get('/', (req, res) => {
-  res.json({ message: 'SoulSync API is running', status: 'ok' });
+// ── SPA fallback — serve React app for all non-API routes ─
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
-// ── 404 handler ───────────────────────────────────────────
-app.use((req, res) => {
+// ── 404 handler (API routes only) ────────────────────────
+app.use('/api/*', (req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });
 });
 
