@@ -56,6 +56,11 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ── Root route ────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({ message: 'SoulSync API is running', status: 'ok' });
+});
+
 // ── 404 handler ───────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });
