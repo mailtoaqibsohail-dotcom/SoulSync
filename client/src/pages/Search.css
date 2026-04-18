@@ -1,0 +1,96 @@
+.search-page {
+  padding: 24px 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.search-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+.search-filters {
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.search-filter-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.search-tab {
+  padding: 8px 16px;
+  border-radius: 50px;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+.search-tab:hover { border-color: var(--pink); color: var(--pink); }
+.search-tab.active {
+  background: var(--gradient);
+  border-color: transparent;
+  color: white;
+}
+.search-input-row {
+  display: flex;
+  gap: 10px;
+}
+.search-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: var(--gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.search-loading { display: flex; justify-content: center; padding: 40px; }
+.search-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.search-results { display: flex; flex-direction: column; gap: 10px; }
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.2s;
+}
+.search-result-item:hover { background: var(--bg-input); }
+
+.search-result__avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+}
+.search-result__info { flex: 1; }
+.search-result__name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+.search-result__name-row h3 { font-size: 1rem; font-weight: 700; }
+.online-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+}
+.search-result__meta { color: var(--text-muted); font-size: 0.85rem; }

@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p server/models server/routes server/middleware server/socket server/config)",
+      "Bash(mkdir -p client/src/pages client/src/components client/src/context client/src/hooks client/src/utils client/src/assets)",
+      "Bash(npm install:*)",
+      "Bash(timeout 15 npm run dev)",
+      "Bash(node -e ':*)",
+      "Bash(xargs kill:*)",
+      "Bash(node server.js)",
+      "Bash(kill %1)",
+      "Bash(curl -s http://localhost:5001/api/health)",
+      "Bash(curl -s -X POST http://localhost:5001/api/auth/register -H 'Content-Type: application/json' -d '{\"name\":\"Test User\",\"username\":\"testuser\",\"email\":\"test@test.com\",\"password\":\"123456\",\"dateOfBirth\":\"1995-01-01\",\"gender\":\"man\",\"interestedIn\":[\"everyone\"]}')",
+      "Bash(python3 -m json.tool)",
+      "mcp__mcp-registry__search_mcp_registry",
+      "mcp__mcp-registry__suggest_connectors"
+    ]
+  }
+}

@@ -1,0 +1,199 @@
+.swipe-card {
+  position: absolute;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+  background: var(--bg-card);
+}
+
+.swipe-card__photo-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 20px 20px 0 0;
+}
+
+.swipe-card__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Gradient overlay at bottom */
+.swipe-card__gradient {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 55%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+/* Photo dots */
+.swipe-card__dots {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  z-index: 3;
+}
+.swipe-card__dot {
+  width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.4);
+  transition: background 0.2s;
+}
+.swipe-card__dot.active {
+  background: white;
+}
+
+/* Photo nav arrows */
+.swipe-card__nav {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  color: transparent;
+  z-index: 2;
+  transition: color 0.2s;
+}
+.swipe-card__nav:hover { color: rgba(255,255,255,0.6); }
+.swipe-card__nav--left { left: 0; justify-content: flex-start; padding-left: 12px; }
+.swipe-card__nav--right { right: 0; justify-content: flex-end; padding-right: 12px; }
+
+/* LIKE / NOPE stamps */
+.swipe-card__stamp {
+  position: absolute;
+  top: 24px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  z-index: 10;
+  pointer-events: none;
+  border: 4px solid;
+}
+.swipe-card__stamp--like {
+  left: 20px;
+  color: #00c896;
+  border-color: #00c896;
+  transform: rotate(-15deg);
+}
+.swipe-card__stamp--nope {
+  right: 20px;
+  color: var(--pink);
+  border-color: var(--pink);
+  transform: rotate(15deg);
+}
+
+/* User info */
+.swipe-card__info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  z-index: 5;
+  cursor: pointer;
+}
+.swipe-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.swipe-card__name-row h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+.swipe-card__age {
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: rgba(255,255,255,0.9);
+}
+.verified-badge {
+  background: var(--gradient);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  margin-left: 6px;
+}
+.swipe-card__location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255,255,255,0.75);
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+.swipe-card__bio {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  background: rgba(0,0,0,0.3);
+  padding: 8px 12px;
+  border-radius: 10px;
+  backdrop-filter: blur(4px);
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+/* Action buttons */
+.swipe-card__actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 0 18px;
+  background: var(--bg-card);
+}
+.swipe-card__btn {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.swipe-card__btn:hover { transform: scale(1.1); }
+.swipe-card__btn:active { transform: scale(0.95); }
+
+.swipe-card__btn--dislike {
+  width: 60px; height: 60px;
+  background: #1e1e1e;
+  color: var(--pink);
+  border: 2px solid var(--pink);
+  box-shadow: 0 4px 16px rgba(253,80,104,0.3);
+}
+.swipe-card__btn--superlike {
+  width: 50px; height: 50px;
+  background: #1e1e1e;
+  color: #4fc3f7;
+  border: 2px solid #4fc3f7;
+  box-shadow: 0 4px 16px rgba(79,195,247,0.3);
+}
+.swipe-card__btn--like {
+  width: 60px; height: 60px;
+  background: var(--gradient);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 20px rgba(253,80,104,0.5);
+}

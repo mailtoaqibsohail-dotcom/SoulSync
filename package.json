@@ -1,0 +1,14 @@
+{
+  "name": "dating-app",
+  "version": "1.0.0",
+  "description": "Full-stack dating app — like Tinder/Bumble",
+  "scripts": {
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm start\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

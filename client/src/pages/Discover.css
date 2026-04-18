@@ -1,0 +1,111 @@
+.discover-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100vh - 64px);
+  padding: 20px 16px;
+  background: var(--bg);
+}
+
+.discover-stack {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: calc(100vh - 130px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.discover-stack__item {
+  position: absolute;
+  width: 100%;
+}
+
+.swipe-card--bg {
+  border-radius: 20px;
+  overflow: hidden;
+  height: 520px;
+}
+.swipe-card--bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.discover-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 32px;
+  width: 100%;
+  max-width: 340px;
+  gap: 12px;
+}
+.discover-empty__icon { font-size: 3.5rem; }
+.discover-empty h3 { font-size: 1.4rem; font-weight: 700; }
+.discover-empty p { color: var(--text-muted); font-size: 0.95rem; }
+
+/* Spinner */
+.spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--border);
+  border-top-color: var(--pink);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Match popup overlay */
+.match-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.match-popup {
+  background: var(--bg-card);
+  border-radius: 24px;
+  padding: 40px 32px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+  animation: popIn 0.4s cubic-bezier(.17,.67,.35,1.5);
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.match-popup h2 {
+  font-size: 2.4rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+.match-popup p {
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  font-size: 1rem;
+}
+.match-popup__photos {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+.match-popup__photos img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--pink);
+  box-shadow: 0 0 24px rgba(253,80,104,0.5);
+}
