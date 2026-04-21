@@ -40,6 +40,29 @@ router.get('/discover', protect, async (req, res) => {
     const userLng = hasQueryCoords ? qLng : coords[0];
     const userLat = hasQueryCoords ? qLat : coords[1];
 
+    // Persist fresh browser coords on the requester's profile so *other* users
+    // can find them via geoNear. Without this, a new signup whose stored
+    // coords are [0,0] sends their real lat/lng for their own queries, but is
+    // themselves invisible to every other user's query (their stored position
+    // is ~6000km from anywhere). Only update if query coords differ from stored
+    // and aren't the null-island [0,0] placeholder.
+    if (hasQueryCoords && !(qLng === 0 && qLat === 0)) {
+      const [storedLng, storedLat] = Array.isArray(coords) ? coords : [null, null];
+      const moved = storedLng !== qLng || storedLat !== qLat;
+      if (moved) {
+        // fire-and-forget — don't block the response
+        User.updateOne(
+          { _id: currentUser._id },
+          {
+            $set: {
+              'location.coordinates': [qLng, qLat],
+              'location.type': 'Point',
+            },
+          }
+        ).catch((err) => console.error('Update location failed:', err.message));
+      }
+    }
+
     const prefs = currentUser.preferences || {};
 
     // Per-request overrides (query params beat stored preferences).
