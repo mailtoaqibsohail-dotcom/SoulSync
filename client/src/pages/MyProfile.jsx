@@ -356,50 +356,14 @@ const MyProfile = () => {
             )}
           </div>
           <p className="myprofile-username">@{user?.username}</p>
-          {editing === 'city' ? (
-            <div className="myprofile-city-edit">
-              <div className="myprofile-city-input-wrap">
-                <FiMapPin size={14} className="myprofile-city-ic" />
-                <input
-                  className="input-field"
-                  value={cityDraft}
-                  onChange={(e) => setCityDraft(e.target.value)}
-                  onFocus={() => setCityFocus(true)}
-                  onBlur={() => setTimeout(() => setCityFocus(false), 150)}
-                  placeholder="Your city"
-                  autoFocus
-                />
-                {cityFocus && citySuggestions.length > 0 && (
-                  <ul className="myprofile-city-suggest">
-                    {citySuggestions.map((c) => (
-                      <li key={c}>
-                        <button type="button" onMouseDown={() => { setCityDraft(c); saveCity(c); }}>
-                          {c}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <button className="icon-btn green" onClick={() => saveCity(cityDraft)} disabled={saving}><FiCheck /></button>
-              <button className="icon-btn red" onClick={() => { setCityDraft(user?.location?.city || ''); setEditing(null); }}><FiX /></button>
-            </div>
-          ) : (
-            <p className="myprofile-location">
-              <FiMapPin size={13} />
-              {user?.location?.city
-                ? ` ${user.location.city}${user.location.country ? `, ${user.location.country}` : ''}`
-                : ' Add your city'}
-              <button
-                className="icon-btn"
-                style={{ marginLeft: 6 }}
-                onClick={() => { setCityDraft(user?.location?.city || ''); setEditing('city'); }}
-                title="Change city"
-              >
-                <FiEdit2 size={13} />
-              </button>
-            </p>
-          )}
+          {/* City is derived from GPS (auto-updated via useAutoLocation). Not
+              user-editable — Bumble-style always-live location. */}
+          <p className="myprofile-location" title="Auto-detected from your device location">
+            <FiMapPin size={13} />
+            {user?.location?.city
+              ? ` ${user.location.city}${user.location.country ? `, ${user.location.country}` : ''}`
+              : ' Detecting location…'}
+          </p>
         </div>
 
         <div className="myprofile-divider" />

@@ -25,6 +25,7 @@ import Search       from './pages/Search';
 import MyProfile    from './pages/MyProfile';
 import ViewProfile  from './pages/ViewProfile';
 import Call         from './pages/Call';
+import useAutoLocation from './hooks/useAutoLocation';
 
 // Redirect to login if not authenticated
 const PrivateRoute = ({ children }) => {
@@ -37,6 +38,9 @@ const PrivateRoute = ({ children }) => {
 const Layout = ({ children }) => {
   const { user } = useAuth();
   const { pathname } = useLocation();
+  // Background location tracker — keeps the logged-in user's city/coords in
+  // sync with their real device location (Bumble-style). No-op when logged out.
+  useAutoLocation();
   const hideNav = ['/login', '/register', '/setup-profile', '/verify-otp', '/forgot-password', '/reset-password'].includes(pathname);
 
   return (
