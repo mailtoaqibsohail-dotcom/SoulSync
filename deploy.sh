@@ -26,17 +26,26 @@ fi
 
 echo "==> Building client"
 cd "$REPO/client"
-# react-scripts is a devDependency — nodevenv/Passenger forces production mode
-# which skips devDeps. Wipe node_modules and do a clean install with devDeps.
+# nodevenv sets NPM_CONFIG_PREFIX globally → installs go to nodevenv's lib,
+# not the local client folder. Force local install by clearing prefix and
+# pointing explicitly at $PWD.
 rm -rf node_modules
-NODE_ENV=development npm install --include=dev --production=false --no-audit --no-fund
-# Verify react-scripts landed
-if [ ! -f node_modules/react-scripts/bin/react-scripts.js ]; then
-    echo "react-scripts missing — installing directly"
-    NODE_ENV=development npm install --include=dev --production=false react-scripts@5
+unset NPM_CONFIG_PREFIX
+unset npm_config_prefix
+NODE_ENV=development npm install \
+    --prefix "$PWD" \
+    --include=dev --production=false \
+    --no-audit --no-fund
+
+# Sanity check
+if [ ! -f "$PWD/node_modules/react-scripts/bin/react-scripts.js" ]; then
+    echo "ERROR: react-scripts still missing at $PWD/node_modules/react-scripts"
+    ls "$PWD/node_modules" 2>/dev/null | head
+    exit 1
 fi
-# Call react-scripts directly via node (PATH-less) to avoid nodevenv shim issues
-NODE_ENV=production node ./node_modules/react-scripts/bin/react-scripts.js build
+
+# Run build via explicit node path — no PATH dependency
+NODE_ENV=production node "$PWD/node_modules/react-scripts/bin/react-scripts.js" build
 
 echo "==> Syncing client build to public_html"
 mkdir -p "$DOMAIN/public_html"
