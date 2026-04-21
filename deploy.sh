@@ -26,7 +26,8 @@ fi
 
 echo "==> Building client"
 cd "$REPO/client"
-npm install --no-audit --no-fund --prefer-offline
+# react-scripts is a devDependency — force install of devDeps even though NODE_ENV=production
+NODE_ENV=development npm install --include=dev --no-audit --no-fund --prefer-offline
 npm run build
 
 echo "==> Syncing client build to public_html"
