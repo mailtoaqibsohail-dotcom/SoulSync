@@ -52,7 +52,10 @@
       "Bash(ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -o BatchMode=yes iqraacad@da600.is.cc 'whoami && pwd')",
       "Bash(ssh -o BatchMode=yes -o ConnectTimeout=10 iqraacad@da600.is.cc 'whoami; pwd; ls domains/spark.proflowenergy.org/')",
       "Bash(ssh -v -o BatchMode=yes -o ConnectTimeout=10 -i ~/.ssh/id_ed25519 iqraacad@da600.is.cc 'echo ok')",
-      "Bash(ssh -v -o BatchMode=yes -o ConnectTimeout=10 iqraacad@da600.is.cc 'echo ok')"
+      "Bash(ssh -v -o BatchMode=yes -o ConnectTimeout=10 iqraacad@da600.is.cc 'echo ok')",
+      "Bash(gh auth *)",
+      "Bash(git config *)",
+      "Read(//Users/aqibsohail/.ssh/**)"
     ]
   }
 }

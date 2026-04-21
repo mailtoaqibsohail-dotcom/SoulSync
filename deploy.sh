@@ -24,34 +24,13 @@ else
     echo "WARN: nodevenv not found at $NODEVENV — using system node"
 fi
 
-echo "==> Building client"
-cd "$REPO/client"
-# nodevenv forces all npm installs into its global lib/node_modules, ignoring
-# --prefix and NPM_CONFIG_PREFIX unset. Workaround: ensure packages are
-# installed there (they should be already from prior runs), then symlink
-# the global node_modules as the local one so react-scripts can resolve
-# its peers relative to cwd.
-NODEVENV_LIB="$HOME/nodevenv/domains/spark.proflowenergy.org/server/22/lib/node_modules"
-
-# Make sure react-scripts and client deps are in nodevenv global
-if [ ! -f "$NODEVENV_LIB/react-scripts/bin/react-scripts.js" ]; then
-    echo "Installing client deps into nodevenv global..."
-    NODE_ENV=development npm install --include=dev --production=false --no-audit --no-fund
-fi
-
-# Symlink global → local so 'node_modules/react-scripts/...' resolves
-rm -rf node_modules
-ln -s "$NODEVENV_LIB" node_modules
-
-# Sanity check
-if [ ! -f node_modules/react-scripts/bin/react-scripts.js ]; then
-    echo "ERROR: react-scripts still not found via symlink"
-    ls -la node_modules | head -5
+echo "==> Using pre-built client/build from repo"
+# Client is built on the developer's Mac (nodevenv has version conflicts that
+# make server-side builds unreliable) and committed to the repo. Just verify.
+if [ ! -f "$REPO/client/build/index.html" ]; then
+    echo "ERROR: client/build/index.html missing. Run 'npm run build' locally and commit."
     exit 1
 fi
-
-# Build
-NODE_ENV=production node node_modules/react-scripts/bin/react-scripts.js build
 
 echo "==> Syncing client build to public_html"
 mkdir -p "$DOMAIN/public_html"

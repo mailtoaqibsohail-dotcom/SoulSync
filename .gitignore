@@ -13,8 +13,8 @@ server/.env.*
 deploy/**/.env
 deploy/**/.env.*
 
-# Build artefacts
-client/build/
+# Build artefacts — client/build IS committed so server can skip npm build
+# (nodevenv global node_modules has version conflicts, so we build locally)
 client/android/app/build/
 client/android/.gradle/
 client/android/build/
