@@ -63,8 +63,11 @@ router.post(
     }
 
     try {
-      const { name, username, email, phone, password, dateOfBirth, gender, interestedIn } =
+      const { name, username, email, password, dateOfBirth, gender, interestedIn } =
         req.body;
+      // Empty-string phones collide on the unique sparse index (sparse only
+      // excludes null/missing, not ""). Normalize "" → undefined here.
+      const phone = req.body.phone && req.body.phone.trim() ? req.body.phone.trim() : undefined;
 
       const existingUser = await User.findOne({
         $or: [
@@ -110,7 +113,7 @@ router.post(
         name,
         username: username.toLowerCase(),
         email: email.toLowerCase(),
-        phone,
+        ...(phone ? { phone } : {}),
         password,
         dateOfBirth: dob,
         gender,
