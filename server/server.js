@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
+const path = require('path');
+const fs = require('fs');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -55,6 +57,19 @@ app.use('/api/matches', require('./routes/matches'));
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// ── Serve React build (production) ────────────────────────
+// Passenger routes ALL requests on the subdomain to Node, so Node also
+// serves the static React files + SPA fallback.
+const CLIENT_BUILD = path.resolve(__dirname, '..', 'public_html');
+if (fs.existsSync(CLIENT_BUILD)) {
+  app.use(express.static(CLIENT_BUILD));
+  // SPA fallback — any non-API GET returns index.html so React Router handles it
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api/') || req.originalUrl.startsWith('/socket.io/')) return next();
+    res.sendFile(path.join(CLIENT_BUILD, 'index.html'));
+  });
+}
 
 // ── 404 handler ───────────────────────────────────────────
 app.use((req, res) => {

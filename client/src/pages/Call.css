@@ -1,0 +1,126 @@
+.call-page {
+  position: fixed; inset: 0;
+  background: #0a0a0a;
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+/* Remote video fills screen */
+.call-remote-video {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  background: #111;
+}
+
+/* Local video — picture in picture */
+.call-local-video {
+  position: absolute;
+  top: 20px; right: 16px;
+  width: 110px; height: 160px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.3);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  z-index: 10;
+  cursor: pointer;
+}
+
+/* Audio call background */
+.call-audio-bg {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #2a0a2a 0%, #0a0a0a 70%);
+}
+.call-audio-icon { color: var(--pink); z-index: 2; }
+.call-audio-pulse {
+  position: absolute;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  border: 2px solid rgba(253,80,104,0.3);
+  animation: audioPulse 2s ease infinite;
+}
+.call-audio-pulse::before {
+  content: '';
+  position: absolute; inset: -20px;
+  border-radius: 50%;
+  border: 2px solid rgba(253,80,104,0.15);
+  animation: audioPulse 2s ease infinite 0.4s;
+}
+@keyframes audioPulse {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* Status text overlay */
+.call-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 48px 20px 20px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
+  text-align: center;
+  z-index: 5;
+}
+.call-status-text p {
+  color: white; font-size: 1.1rem; font-weight: 600;
+}
+.call-timer {
+  font-size: 1.3rem !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Calling dots animation */
+.call-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 8px; }
+.call-dots span {
+  width: 8px; height: 8px; border-radius: 50%; background: white;
+  animation: dotBounce 1.2s infinite;
+}
+.call-dots span:nth-child(2) { animation-delay: 0.2s; }
+.call-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dotBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+/* Controls bar */
+.call-controls {
+  position: relative; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+  gap: 20px;
+  padding: 24px 32px 48px;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+}
+
+.call-btn {
+  width: 60px; height: 60px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  color: white; cursor: pointer;
+  transition: transform 0.15s, background 0.2s;
+}
+.call-btn:hover { transform: scale(1.08); }
+.call-btn:active { transform: scale(0.95); }
+.call-btn.off { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
+.call-btn.on  { background: var(--pink, #fd5068); color: #fff; border-color: transparent; }
+
+.call-btn--end {
+  width: 68px; height: 68px;
+  background: #e53935;
+  border-color: transparent;
+  box-shadow: 0 4px 20px rgba(229,57,53,0.5);
+}
+.call-btn--end:hover { background: #c62828; }
+
+.call-btn--accept {
+  width: 68px; height: 68px;
+  background: var(--green);
+  border-color: transparent;
+  box-shadow: 0 4px 20px rgba(0,200,150,0.5);
+}
+.call-btn--reject {
+  width: 68px; height: 68px;
+  background: #e53935;
+  border-color: transparent;
+  box-shadow: 0 4px 20px rgba(229,57,53,0.5);
+}

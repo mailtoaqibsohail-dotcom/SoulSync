@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../components/Logo';
+import '../components/Logo.css';
 import './Auth.css';
 
 const GENDERS = ['man', 'woman', 'non-binary', 'other'];
@@ -54,7 +56,11 @@ const Register = () => {
     if (!validateStep2()) return;
     setLoading(true);
     try {
-      await register(form);
+      const result = await register(form);
+      if (result?.requiresVerification) {
+        navigate('/verify-otp', { state: { email: result.email || form.email } });
+        return;
+      }
       navigate('/setup-profile');
     } catch (err) {
       const msg = err.response?.data?.message
@@ -70,7 +76,7 @@ const Register = () => {
     <div className="auth-page">
       <div className="auth-card card">
         <div className="auth-logo">
-          <span className="gradient-text">💫 Spark</span>
+          <Logo size={44} />
         </div>
 
         {/* Step indicator */}

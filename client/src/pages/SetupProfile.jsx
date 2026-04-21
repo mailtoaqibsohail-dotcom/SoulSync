@@ -179,7 +179,7 @@ const SetupProfile = () => {
                   <span>Add photo</span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.heic,.heif,.avif,.tiff,.tif,.bmp"
                     multiple
                     onChange={handlePhotoChange}
                     style={{ display: 'none' }}

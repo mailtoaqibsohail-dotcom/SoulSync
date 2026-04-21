@@ -39,6 +39,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (identifier, password) => {
     const { data } = await axios.post('/api/auth/login', { identifier, password });
+    // New signups that haven't finished OTP get { requiresVerification: true, email }
+    // — no token, so skip the token/user setup and let the caller redirect.
+    if (data.requiresVerification) return data;
     localStorage.setItem('datingapp_token', data.token);
     setToken(data.token);
     setUser(data.user);
@@ -47,10 +50,39 @@ export const AuthProvider = ({ children }) => {
 
   const register = useCallback(async (formData) => {
     const { data } = await axios.post('/api/auth/register', formData);
+    // Register now requires OTP — no token until /verify-otp succeeds.
+    if (data.requiresVerification) return data;
+    if (data.token) {
+      localStorage.setItem('datingapp_token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+    }
+    return data;
+  }, []);
+
+  const verifyOtp = useCallback(async (email, code) => {
+    const { data } = await axios.post('/api/auth/verify-otp', { email, code });
     localStorage.setItem('datingapp_token', data.token);
     setToken(data.token);
     setUser(data.user);
     return data;
+  }, []);
+
+  const resendOtp = useCallback(async (email) => {
+    const { data } = await axios.post('/api/auth/resend-otp', { email });
+    return data;
+  }, []);
+
+  const requestDeleteOtp = useCallback(async () => {
+    const { data } = await axios.post('/api/auth/request-delete-otp');
+    return data;
+  }, []);
+
+  const deleteAccount = useCallback(async ({ password, code } = {}) => {
+    await axios.delete('/api/auth/delete-account', { data: { password, code } });
+    localStorage.removeItem('datingapp_token');
+    setToken(null);
+    setUser(null);
   }, []);
 
   const logout = useCallback(async () => {
@@ -65,7 +97,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUser, verifyOtp, resendOtp, deleteAccount, requestDeleteOtp }}>
       {children}
     </AuthContext.Provider>
   );

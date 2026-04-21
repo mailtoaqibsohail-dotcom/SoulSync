@@ -1,0 +1,129 @@
+.notif-bell { position: relative; }
+
+.notif-bell__btn {
+  position: relative;
+  background: transparent;
+  color: var(--text-muted);
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.2s, background 0.2s;
+  border: none;
+}
+.notif-bell__btn:hover { color: var(--pink); background: rgba(253,80,104,0.08); }
+
+.notif-bell__dot {
+  position: absolute;
+  top: 4px; right: 4px;
+  min-width: 18px; height: 18px;
+  border-radius: 9px;
+  background: var(--pink);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--bg-card);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  max-height: 420px;
+  overflow-y: auto;
+  z-index: 200;
+  animation: slideDown 0.2s ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.notif-dropdown__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; background: var(--bg-card); z-index: 1;
+}
+.notif-dropdown__header h4 { font-size: 1rem; font-weight: 700; }
+.notif-clear { background: transparent; color: var(--text-muted); font-size: 0.8rem; border: none; cursor: pointer; }
+.notif-clear:hover { color: var(--pink); }
+
+.notif-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px 20px; gap: 10px; color: var(--text-muted);
+}
+.notif-empty p { font-size: 0.9rem; }
+
+.notif-list { padding: 8px 0; }
+
+.notif-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.notif-item:hover { background: var(--bg-input); }
+.notif-item.unread { background: rgba(253,80,104,0.05); }
+
+.notif-item__icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.notif-item__icon.match { background: rgba(253,80,104,0.15); color: var(--pink); }
+.notif-item__icon.message { background: rgba(138,5,190,0.15); color: var(--purple); }
+
+.notif-item__body { flex: 1; min-width: 0; }
+.notif-item__body p { font-size: 0.88rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.notif-item__body span { font-size: 0.75rem; color: var(--text-muted); }
+
+.notif-item__unread-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--pink); flex-shrink: 0;
+}
+
+/* Match popup */
+.match-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.match-popup {
+  position: relative;
+  padding: 40px 32px;
+  max-width: 360px; width: 90%;
+  text-align: center;
+  animation: popIn 0.4s cubic-bezier(.17,.67,.35,1.5);
+}
+@keyframes popIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+
+.match-popup__close {
+  position: absolute; top: 14px; right: 14px;
+  background: var(--bg-input); color: var(--text-muted);
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: none; cursor: pointer;
+}
+.match-popup__hearts { font-size: 3rem; margin-bottom: 8px; animation: heartbeat 1s ease infinite; }
+@keyframes heartbeat { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+.match-popup h2 { font-size: 2.2rem; font-weight: 900; margin-bottom: 8px; }
+.match-popup p { color: var(--text-muted); margin-bottom: 20px; }
+.match-popup__avatar {
+  width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
+  border: 3px solid var(--pink); margin-bottom: 24px;
+  box-shadow: 0 0 30px rgba(253,80,104,0.5);
+}
+.match-popup__actions { display: flex; flex-direction: column; gap: 0; }

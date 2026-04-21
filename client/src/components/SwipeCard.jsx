@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { FiX, FiHeart, FiStar, FiMapPin, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { DEFAULT_AVATAR } from '../utils/defaults';
 
 const SwipeCard = ({ user, onLike, onDislike, onSuperLike, style = {} }) => {
   const cardRef = useRef(null);
@@ -10,7 +11,7 @@ const SwipeCard = ({ user, onLike, onDislike, onSuperLike, style = {} }) => {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [showInfo, setShowInfo] = useState(false);
 
-  const photos = user.photos?.length ? user.photos : [user.profilePhoto || '/placeholder.jpg'];
+  const photos = user.photos?.length ? user.photos : [user.profilePhoto || DEFAULT_AVATAR];
 
   // ── Gesture helpers ───────────────────────────────────
   const getRotation = () => `${offset.x * 0.05}deg`;

@@ -60,12 +60,16 @@ const userSchema = new mongoose.Schema(
     photos: {
       type: [String], // array of Cloudinary URLs
       validate: {
-        validator: (arr) => arr.length <= 6,
-        message: 'Maximum 6 photos allowed',
+        validator: (arr) => arr.length <= 5,
+        message: 'Maximum 5 photos allowed',
       },
       default: [],
     },
     profilePhoto: {
+      type: String,
+      default: '',
+    },
+    coverPhoto: {
       type: String,
       default: '',
     },
@@ -99,17 +103,41 @@ const userSchema = new mongoose.Schema(
       },
     },
 
+    hobbies: {
+      type: [String],
+      default: [],
+    },
+
     // Matching
-    likedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    dislikedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    // NOTE: likedUsers / dislikedUsers have been offloaded to the Swipe
+    // collection (see models/Swipe.js) to keep User documents small. The
+    // fields are kept here temporarily as legacy — new code MUST NOT write
+    // to them. They'll be dropped after a migration.
+    likedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // legacy
+    dislikedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // legacy
     blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     matches: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+
+    // Sparks (Grindr-style "someone is interested" notification)
+    sparksReceived: [{
+      from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      at: { type: Date, default: Date.now },
+    }],
 
     // Status
     isOnline: { type: Boolean, default: false },
     lastSeen: { type: Date, default: Date.now },
-    isVerified: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false }, // email-verified flag
     isActive: { type: Boolean, default: true },
+
+    // Email OTP (6-digit code, 10-minute TTL)
+    // emailVerificationPending is the actual "block login" gate — it's only
+    // set true by the new register flow, so legacy accounts (which predate
+    // OTP) aren't forced through verification on their next login.
+    emailVerificationPending: { type: Boolean, default: false },
+    otpCode: { type: String, select: false },
+    otpExpires: { type: Date, select: false },
+    otpAttempts: { type: Number, default: 0, select: false },
 
     // Password reset
     resetPasswordToken: String,
@@ -158,10 +186,14 @@ userSchema.methods.toPublicProfile = function () {
     bio: this.bio,
     photos: this.photos,
     profilePhoto: this.profilePhoto,
+    coverPhoto: this.coverPhoto,
     location: { city: this.location.city, country: this.location.country },
     isOnline: this.isOnline,
     lastSeen: this.lastSeen,
     isVerified: this.isVerified,
+    hobbies: this.hobbies,
+    interestedIn: this.interestedIn,
+    dateOfBirth: this.dateOfBirth,
   };
 };
 

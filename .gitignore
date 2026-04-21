@@ -1,7 +1,36 @@
 node_modules/
 server/node_modules/
 client/node_modules/
-server/.env
+
+# Env files — never commit secrets
 .env
+.env.*
+!.env.example
+!client/.env.production
+server/.env
+server/.env.*
+!server/.env.example
+deploy/**/.env
+deploy/**/.env.*
+
+# Build artefacts
 client/build/
+client/android/app/build/
+client/android/.gradle/
+client/android/build/
+client/android/local.properties
+client/android/capacitor-cordova-android-plugins/
+client/android/app/src/main/assets/public/
+
+# Android signing — never commit keystores
+*.keystore
+*.jks
+keystore.properties
+
+# Logs
+server/logs/
+*.log
+
+# OS
 .DS_Store
+Thumbs.db

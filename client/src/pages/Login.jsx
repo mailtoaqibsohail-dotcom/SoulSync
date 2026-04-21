@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Logo from '../components/Logo';
+import '../components/Logo.css';
 import './Auth.css';
 
 const Login = () => {
@@ -15,10 +17,26 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      await login(form.identifier, form.password);
+      const result = await login(form.identifier, form.password);
+      if (result?.requiresVerification) {
+        navigate('/verify-otp', { state: { email: result.email } });
+        return;
+      }
       navigate('/discover');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      // Surface the real cause instead of swallowing it under a generic message.
+      // 401 → wrong creds. Network/offline → no err.response. 5xx → server error.
+      let msg;
+      if (err.response?.data?.message) {
+        msg = err.response.data.message;
+      } else if (err.response?.status) {
+        msg = `Server error (${err.response.status}). Please try again.`;
+      } else if (err.code === 'ERR_NETWORK' || err.message?.includes('Network')) {
+        msg = 'Cannot reach server. Check your internet connection.';
+      } else {
+        msg = err.message || 'Login failed. Please try again.';
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -28,7 +46,7 @@ const Login = () => {
     <div className="auth-page">
       <div className="auth-card card">
         <div className="auth-logo">
-          <span className="gradient-text">💫 Spark</span>
+          <Logo size={44} />
         </div>
         <h1 className="auth-title">Welcome back</h1>
         <p className="auth-subtitle">Sign in to continue</p>

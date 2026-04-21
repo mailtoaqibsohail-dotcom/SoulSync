@@ -1,0 +1,14 @@
+RewriteEngine On
+
+# Let Node.js app handle API and websockets
+RewriteCond %{REQUEST_URI} ^/api/ [OR]
+RewriteCond %{REQUEST_URI} ^/socket.io/
+RewriteRule ^ - [L]
+
+# Serve real files/dirs directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# SPA fallback — all React routes go to index.html
+RewriteRule ^ index.html [L]

@@ -1,0 +1,35 @@
+/* Floating mobile-only wrapper that hosts the NotificationBell as a FAB.
+   Desktop hides this since the bell already lives in the navbar. */
+.floating-inbox-wrap {
+  position: fixed;
+  bottom: 84px; /* above bottom navbar */
+  right: 16px;
+  z-index: 90;
+  animation: floatIn 0.4s cubic-bezier(.17,.67,.35,1.5);
+}
+@keyframes floatIn { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+
+/* Give the bell inside a FAB look on mobile */
+.floating-inbox-wrap .notif-bell__btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--gradient);
+  color: #fff;
+  border: none;
+  box-shadow: 0 6px 24px rgba(253, 80, 104, 0.5);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.floating-inbox-wrap .notif-bell__btn:hover { transform: scale(1.08); }
+.floating-inbox-wrap .notif-bell__btn:active { transform: scale(0.95); }
+
+/* Hide the floating bell while the user is inside a chat page */
+body:has(.chat-page) .floating-inbox-wrap { display: none; }
+
+/* Desktop: navbar's NotificationBell is visible; hide the floating FAB. */
+@media (min-width: 768px) {
+  .floating-inbox-wrap { display: none; }
+}

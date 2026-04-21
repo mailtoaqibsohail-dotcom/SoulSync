@@ -1,0 +1,23 @@
+.app-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: 0.2px;
+  line-height: 1;
+}
+
+.app-logo__icon {
+  object-fit: contain;
+  display: block;
+  /* The provided icon is pink/purple on a white background. Dropping white
+     via a color filter lets it live on dark UI without a halo. Swap or
+     remove this filter if you ship a transparent PNG/SVG. */
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 6px rgba(253, 80, 104, 0.35));
+}
+
+.app-logo__text {
+  font-weight: 800;
+}

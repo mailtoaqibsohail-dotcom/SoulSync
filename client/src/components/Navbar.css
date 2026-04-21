@@ -16,6 +16,16 @@
 
 .navbar__logo { display: none; }
 .navbar__logout { display: none; }
+.navbar__right { display: none; align-items: center; gap: 8px; }
+.navbar__link-icon-wrap { position: relative; display: flex; }
+.navbar__badge {
+  position: absolute; top: -6px; right: -8px;
+  min-width: 16px; height: 16px; border-radius: 8px;
+  background: var(--pink); color: white;
+  font-size: 0.6rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 3px;
+}
 
 .navbar__links {
   display: flex;
@@ -71,6 +81,7 @@
     font-size: 0.9rem;
     gap: 6px;
   }
+  .navbar__right { display: flex; }
   .navbar__logout {
     display: block;
     background: transparent;
