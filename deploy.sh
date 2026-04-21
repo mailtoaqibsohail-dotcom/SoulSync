@@ -26,8 +26,16 @@ fi
 
 echo "==> Building client"
 cd "$REPO/client"
-# react-scripts is a devDependency — force install of devDeps even though NODE_ENV=production
-NODE_ENV=development npm install --include=dev --no-audit --no-fund --prefer-offline
+# react-scripts is a devDependency — nodevenv/Passenger forces production mode
+# which skips devDeps. Wipe node_modules and do a clean install with devDeps.
+rm -rf node_modules
+NODE_ENV=development npm ci --include=dev --production=false --no-audit --no-fund \
+    || NODE_ENV=development npm install --include=dev --production=false --no-audit --no-fund
+# Verify react-scripts landed
+if [ ! -f node_modules/.bin/react-scripts ]; then
+    echo "react-scripts missing — installing directly"
+    NODE_ENV=development npm install --include=dev --production=false react-scripts@5
+fi
 npm run build
 
 echo "==> Syncing client build to public_html"
