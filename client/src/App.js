@@ -13,6 +13,8 @@ import Navbar       from './components/Navbar';
 import Login        from './pages/Login';
 import Register     from './pages/Register';
 import VerifyOtp    from './pages/VerifyOtp';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword  from './pages/ResetPassword';
 import SetupProfile from './pages/SetupProfile';
 import Discover     from './pages/Discover';
 import Matches      from './pages/Matches';
@@ -35,7 +37,7 @@ const PrivateRoute = ({ children }) => {
 const Layout = ({ children }) => {
   const { user } = useAuth();
   const { pathname } = useLocation();
-  const hideNav = ['/login', '/register', '/setup-profile'].includes(pathname);
+  const hideNav = ['/login', '/register', '/setup-profile', '/verify-otp', '/forgot-password', '/reset-password'].includes(pathname);
 
   return (
     <>
@@ -56,6 +58,8 @@ const AppRoutes = () => (
       <Route path="/login"         element={<Login />} />
       <Route path="/register"      element={<Register />} />
       <Route path="/verify-otp"    element={<VerifyOtp />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password"  element={<ResetPassword />} />
       <Route path="/setup-profile" element={<PrivateRoute><SetupProfile /></PrivateRoute>} />
 
       <Route path="/discover"         element={<PrivateRoute><Discover /></PrivateRoute>} />

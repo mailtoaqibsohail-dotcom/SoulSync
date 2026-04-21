@@ -73,6 +73,16 @@ export const AuthProvider = ({ children }) => {
     return data;
   }, []);
 
+  const forgotPassword = useCallback(async (email) => {
+    const { data } = await axios.post('/api/auth/forgot-password', { email });
+    return data;
+  }, []);
+
+  const resetPassword = useCallback(async (email, code, newPassword) => {
+    const { data } = await axios.post('/api/auth/reset-password', { email, code, newPassword });
+    return data;
+  }, []);
+
   const requestDeleteOtp = useCallback(async () => {
     const { data } = await axios.post('/api/auth/request-delete-otp');
     return data;
@@ -97,7 +107,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUser, verifyOtp, resendOtp, deleteAccount, requestDeleteOtp }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUser, verifyOtp, resendOtp, forgotPassword, resetPassword, deleteAccount, requestDeleteOtp }}>
       {children}
     </AuthContext.Provider>
   );

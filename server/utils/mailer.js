@@ -74,4 +74,24 @@ const sendOtpEmail = async ({ to, name, code }) => {
   return sendMail({ to, subject, text, html });
 };
 
-module.exports = { sendMail, sendOtpEmail, generateOtp };
+const sendPasswordResetEmail = async ({ to, name, code }) => {
+  const subject = 'Reset your Spark password';
+  const text =
+    `Hi ${name || 'there'},\n\n` +
+    `Your password reset code is: ${code}\n\n` +
+    `It expires in 10 minutes. If you didn't request this, you can safely ignore this email — your password won't be changed.\n\n` +
+    `— The Spark team`;
+  const html = `
+    <div style="font-family: -apple-system, Segoe UI, sans-serif; max-width:480px; margin:auto; padding:32px; background:#0d0d0d; color:#fff; border-radius:12px;">
+      <h1 style="color:#fd5068; margin:0 0 16px;">Spark</h1>
+      <p>Hi ${name || 'there'},</p>
+      <p>Use this code to reset your password:</p>
+      <div style="font-size:32px; letter-spacing:8px; font-weight:700; background:#1a1a1a; padding:16px 24px; border-radius:8px; text-align:center; margin:24px 0;">
+        ${code}
+      </div>
+      <p style="color:#999; font-size:14px;">This code expires in 10 minutes. If you didn't request a reset, you can ignore this email — your password won't change.</p>
+    </div>`;
+  return sendMail({ to, subject, text, html });
+};
+
+module.exports = { sendMail, sendOtpEmail, sendPasswordResetEmail, generateOtp };

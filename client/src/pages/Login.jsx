@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Logo from '../components/Logo';
 import '../components/Logo.css';
@@ -8,9 +8,19 @@ import './Auth.css';
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ identifier: '', password: '' });
   const [error, setError] = useState('');
+  const [info, setInfo] = useState(location.state?.info || '');
   const [loading, setLoading] = useState(false);
+
+  // Clear the "password reset" success flash once the user has seen it, so it
+  // doesn't persist across re-renders or back navigations.
+  useEffect(() => {
+    if (location.state?.info) {
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -52,6 +62,7 @@ const Login = () => {
         <p className="auth-subtitle">Sign in to continue</p>
 
         {error && <div className="auth-error">{error}</div>}
+        {info && <div className="auth-info">{info}</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
@@ -81,6 +92,10 @@ const Login = () => {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
+        <p className="auth-switch" style={{ marginTop: 12 }}>
+          <Link to="/forgot-password">Forgot password?</Link>
+        </p>
 
         <p className="auth-switch">
           Don't have an account? <Link to="/register">Sign up</Link>

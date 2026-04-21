@@ -55,7 +55,25 @@
       "Bash(ssh -v -o BatchMode=yes -o ConnectTimeout=10 iqraacad@da600.is.cc 'echo ok')",
       "Bash(gh auth *)",
       "Bash(git config *)",
-      "Read(//Users/aqibsohail/.ssh/**)"
+      "Read(//Users/aqibsohail/.ssh/**)",
+      "Bash(ssh -o BatchMode=yes -o ConnectTimeout=10 iqraacad@da600.is.cc 'whoami; pwd; ls ~/spark-repo/ 2>/dev/null | head -5')",
+      "Bash(ssh -o BatchMode=yes iqraacad@da600.is.cc 'cd ~/spark-repo && git pull && bash deploy.sh')",
+      "Bash(curl -sI https://spark.proflowenergy.org/)",
+      "Bash(curl -s https://spark.proflowenergy.org/api/health)",
+      "Bash(ssh iqraacad@da600.is.cc 'ls ~/domains/spark.proflowenergy.org/logs/ 2>/dev/null; ls ~/domains/spark.proflowenergy.org/server/tmp/ 2>/dev/null; echo \"---STDERR---\"; tail -30 ~/domains/spark.proflowenergy.org/logs/*error* 2>/dev/null; echo \"---NODE STDERR---\"; tail -30 ~/nodevenv/domains/spark.proflowenergy.org/server/22/*.log 2>/dev/null; echo \"---PASSENGER---\"; find ~/domains/spark.proflowenergy.org -name \"*.log\" 2>/dev/null | head -5')",
+      "Bash(ssh iqraacad@da600.is.cc 'ls ~/domains/spark.proflowenergy.org/; echo \"---\"; ls ~/domains/spark.proflowenergy.org/server/ | head -15; echo \"---SERVER PKG---\"; cat ~/domains/spark.proflowenergy.org/server/package.json 2>/dev/null | head -20')",
+      "Bash(curl -sI https://spark.proflowenergy.org/api/health)",
+      "Bash(ssh iqraacad@da600.is.cc 'ps aux | grep -iE \"node|passenger\" | grep -v grep | head -10')",
+      "Bash(ssh -o StrictHostKeyChecking=no -p 22 iqraacad@da600.is.cc 'ls -la ~/domains/spark.proflowenergy.org/public_html/.htaccess && echo \"---\" && cat ~/domains/spark.proflowenergy.org/public_html/.htaccess')",
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'ls -la ~/domains/spark.proflowenergy.org/ && echo \"---\" && ls -la ~/domains/spark.proflowenergy.org/server/ | head -20 && echo \"---SERVER HTACCESS---\" && find ~/domains/spark.proflowenergy.org -maxdepth 3 -name \".htaccess\" -exec echo \"=== {} ===\" \\\\; -exec cat {} \\\\;')",
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'curl -s -o /dev/null -w \"HTTP %{http_code} from %{remote_ip}\\\\n\" https://spark.proflowenergy.org/api/health; echo \"---\"; curl -sI https://spark.proflowenergy.org/api/health | head -20; echo \"---\"; ps -eo pid,etime,cmd | grep -i lsnode | grep -v grep')",
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'for path in /api/health /api/auth/login /socket.io/ /nonexistent-foo; do echo -n \"$path => \"; curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" https://spark.proflowenergy.org$path; done')",
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'ls -la ~/domains/spark.proflowenergy.org/server/tmp/ ; echo \"---STDERR---\"; find ~/domains/spark.proflowenergy.org -name \"*.log\" 2>/dev/null; echo \"---PASSENGER LOG---\"; ls -la ~/logs/ 2>/dev/null | head; ls ~/nodevenv/domains/spark.proflowenergy.org/server/22/ 2>/dev/null')",
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'find / -path /proc -prune -o -name \"passenger*.log\" -print 2>/dev/null | head; echo \"---\"; find ~ -name \"stderr.log\" -o -name \"error*.log\" 2>/dev/null | head; echo \"---direct test---\"; curl -sv http://127.0.0.1/api/health 2>&1 | head -30')",
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'echo \"===app.proflowenergy.org public_html .htaccess===\"; cat ~/domains/app.proflowenergy.org/public_html/.htaccess 2>/dev/null; echo \"\"; echo \"===spark public_html .htaccess===\"; cat ~/domains/spark.proflowenergy.org/public_html/.htaccess; echo \"\"; echo \"===app structure===\"; ls ~/domains/app.proflowenergy.org/public_html/ | head')",
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'kill 2299731 2>/dev/null; sleep 2; ps -eo pid,etime,cmd | grep -i lsnode | grep -v grep; echo \"---waking app---\"; curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" https://spark.proflowenergy.org/; sleep 3; echo \"---new process---\"; ps -eo pid,etime,cmd | grep -i lsnode | grep -v grep; echo \"---api test---\"; curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" https://spark.proflowenergy.org/api/health')",
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'ls -la ~/nodevenv/domains/spark.proflowenergy.org/server/22/ 2>/dev/null; echo \"---\"; cat ~/nodevenv/domains/spark.proflowenergy.org/server/22/passenger.json 2>/dev/null || echo \"no passenger.json\"; echo \"---httpd conf check---\"; find /usr/local/directadmin -name \"*spark*\" 2>/dev/null | head; echo \"---curl -v /api/health---\"; curl -sv https://spark.proflowenergy.org/api/health 2>&1 | grep -iE \"x-powered|server:|passenger|phusion|404|handler\" | head')",
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'ps -eo pid,etime,cmd | grep -i lsnode | grep -v grep; echo \"---\"; curl -s -o /dev/null -w \"HTTP %{http_code}\\\\n\" https://spark.proflowenergy.org/api/health; echo \"---app env---\"; ls -la ~/nodevenv/domains/spark.proflowenergy.org/server/22/bin/ | head; echo \"---stderr---\"; find ~/domains/spark.proflowenergy.org -name \"stderr.log\" -o -name \"*.log\" 2>/dev/null; echo \"---node app list---\"; ls ~/nodevenv/domains/ 2>/dev/null')"
     ]
   }
 }

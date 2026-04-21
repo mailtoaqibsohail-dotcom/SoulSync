@@ -8,7 +8,7 @@ const Message = require('../models/Message');
 const Swipe = require('../models/Swipe');
 const Report = require('../models/Report');
 const { protect } = require('../middleware/auth');
-const { sendOtpEmail, generateOtp } = require('../utils/mailer');
+const { sendOtpEmail, sendPasswordResetEmail, generateOtp } = require('../utils/mailer');
 
 // ── Helper: sign JWT ──────────────────────────────────────
 const signToken = (id) =>
@@ -206,6 +206,93 @@ router.post(
     } catch (err) {
       console.error('Resend OTP error:', err);
       res.status(500).json({ message: 'Failed to resend code' });
+    }
+  }
+);
+
+// ── POST /api/auth/forgot-password ────────────────────────
+// Emails a 6-digit reset code. Always returns success regardless of whether
+// the email exists — don't leak which addresses are registered.
+router.post(
+  '/forgot-password',
+  [body('email').isEmail().withMessage('Valid email required')],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const email = req.body.email.toLowerCase();
+      const user = await User.findOne({ email });
+      if (user && user.isActive) {
+        const code = generateOtp();
+        user.otpCode = code;
+        user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+        user.otpAttempts = 0;
+        await user.save({ validateBeforeSave: false });
+        sendPasswordResetEmail({ to: user.email, name: user.name, code }).catch(
+          (err) => console.error('Reset email failed:', err.message)
+        );
+      }
+      // Generic response — don't reveal whether the email exists
+      res.json({
+        success: true,
+        message: 'If an account exists for that email, a reset code has been sent.',
+      });
+    } catch (err) {
+      console.error('Forgot password error:', err);
+      res.status(500).json({ message: 'Failed to send reset code' });
+    }
+  }
+);
+
+// ── POST /api/auth/reset-password ─────────────────────────
+// Verifies the OTP and sets a new password in one step.
+router.post(
+  '/reset-password',
+  [
+    body('email').isEmail().withMessage('Valid email required'),
+    body('code').trim().isLength({ min: 6, max: 6 }).withMessage('6-digit code required'),
+    body('newPassword')
+      .isLength({ min: 6 })
+      .withMessage('New password must be at least 6 characters'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const { email, code, newPassword } = req.body;
+      const user = await User.findOne({ email: email.toLowerCase() })
+        .select('+password +otpCode +otpExpires +otpAttempts');
+      if (!user) return res.status(400).json({ message: 'Invalid code' });
+
+      if (!user.otpCode || !user.otpExpires) {
+        return res.status(400).json({ message: 'No reset pending. Request a new code.' });
+      }
+      if (user.otpExpires < new Date()) {
+        return res.status(400).json({ message: 'Code expired. Request a new one.' });
+      }
+      if (user.otpAttempts >= 5) {
+        return res.status(429).json({ message: 'Too many attempts. Request a new code.' });
+      }
+      if (user.otpCode !== code.trim()) {
+        user.otpAttempts += 1;
+        await user.save({ validateBeforeSave: false });
+        return res.status(400).json({ message: 'Invalid code' });
+      }
+
+      user.password = newPassword; // pre-save hook hashes it
+      user.otpCode = undefined;
+      user.otpExpires = undefined;
+      user.otpAttempts = 0;
+      await user.save();
+
+      res.json({ success: true, message: 'Password reset successful. You can now sign in.' });
+    } catch (err) {
+      console.error('Reset password error:', err);
+      res.status(500).json({ message: 'Failed to reset password' });
     }
   }
 );
