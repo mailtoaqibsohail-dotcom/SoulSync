@@ -26,26 +26,32 @@ fi
 
 echo "==> Building client"
 cd "$REPO/client"
-# nodevenv sets NPM_CONFIG_PREFIX globally → installs go to nodevenv's lib,
-# not the local client folder. Force local install by clearing prefix and
-# pointing explicitly at $PWD.
+# nodevenv forces all npm installs into its global lib/node_modules, ignoring
+# --prefix and NPM_CONFIG_PREFIX unset. Workaround: ensure packages are
+# installed there (they should be already from prior runs), then symlink
+# the global node_modules as the local one so react-scripts can resolve
+# its peers relative to cwd.
+NODEVENV_LIB="$HOME/nodevenv/domains/spark.proflowenergy.org/server/22/lib/node_modules"
+
+# Make sure react-scripts and client deps are in nodevenv global
+if [ ! -f "$NODEVENV_LIB/react-scripts/bin/react-scripts.js" ]; then
+    echo "Installing client deps into nodevenv global..."
+    NODE_ENV=development npm install --include=dev --production=false --no-audit --no-fund
+fi
+
+# Symlink global → local so 'node_modules/react-scripts/...' resolves
 rm -rf node_modules
-unset NPM_CONFIG_PREFIX
-unset npm_config_prefix
-NODE_ENV=development npm install \
-    --prefix "$PWD" \
-    --include=dev --production=false \
-    --no-audit --no-fund
+ln -s "$NODEVENV_LIB" node_modules
 
 # Sanity check
-if [ ! -f "$PWD/node_modules/react-scripts/bin/react-scripts.js" ]; then
-    echo "ERROR: react-scripts still missing at $PWD/node_modules/react-scripts"
-    ls "$PWD/node_modules" 2>/dev/null | head
+if [ ! -f node_modules/react-scripts/bin/react-scripts.js ]; then
+    echo "ERROR: react-scripts still not found via symlink"
+    ls -la node_modules | head -5
     exit 1
 fi
 
-# Run build via explicit node path — no PATH dependency
-NODE_ENV=production node "$PWD/node_modules/react-scripts/bin/react-scripts.js" build
+# Build
+NODE_ENV=production node node_modules/react-scripts/bin/react-scripts.js build
 
 echo "==> Syncing client build to public_html"
 mkdir -p "$DOMAIN/public_html"
