@@ -90,7 +90,8 @@
       "Bash(npx --yes create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --turbopack --use-npm --import-alias \"@/*\" --skip-install --yes)",
       "Bash(npx --yes create-next-app@latest proflow-energy --typescript --tailwind --eslint --app --src-dir --turbopack --use-npm --import-alias \"@/*\" --skip-install --yes)",
       "Bash(curl -s -L https://proflowenergy.org/ -o /tmp/pflow.html)",
-      "Bash(curl -sL \"https://proflowenergy.org/wp-content/themes/proflow-energy-theme%20final/style.css?ver=1.0.0\" -o /tmp/pflow-theme.css)"
+      "Bash(curl -sL \"https://proflowenergy.org/wp-content/themes/proflow-energy-theme%20final/style.css?ver=1.0.0\" -o /tmp/pflow-theme.css)",
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'ps -eo pid,etime,cmd | grep -i lsnode | grep -v grep || echo \"NO lsnode\"; echo \"---\"; curl -s -o /dev/null -w \"api/health: %{http_code}\\\\n\" https://spark.proflowenergy.org/api/health')"
     ]
   }
 }

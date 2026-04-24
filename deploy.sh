@@ -49,10 +49,14 @@ echo "==> Installing server deps"
 cd "$DOMAIN/server"
 npm install --omit=dev --no-audit --no-fund --prefer-offline
 
-echo "==> Restarting Passenger"
-mkdir -p "$DOMAIN/server/tmp"
-touch "$DOMAIN/server/tmp/restart.txt"
+echo "==> Skipping tmp/restart.txt touch"
+# On this InterServer/LiteSpeed host, touching tmp/restart.txt reliably STOPS
+# the lsnode process but Passenger does not re-spawn it on the next request —
+# the app goes offline until someone clicks Restart in DirectAdmin → Node.js
+# Selector. So we skip the touch. Static-only deploys (client/build rsync)
+# need no restart at all; server code changes need a manual panel Restart.
 
 echo ""
 echo "✓ Deploy complete"
+echo "  If you changed server code, click Restart in DirectAdmin → Node.js Selector."
 echo "  Test: curl -I https://spark.proflowenergy.org/api/health"
