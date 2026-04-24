@@ -80,7 +80,17 @@
       "Bash(ssh -p 22 iqraacad@da600.is.cc 'kill 2455185; sleep 1; curl -s -o /dev/null -w \"wake: HTTP %{http_code}\\\\n\" https://spark.proflowenergy.org/; sleep 4; ps -eo pid,etime,cmd | grep -i lsnode | grep -v grep; curl -s -o /dev/null -w \"/api/health: HTTP %{http_code}\\\\n\" https://spark.proflowenergy.org/api/health; curl -s -X POST https://spark.proflowenergy.org/api/auth/forgot-password -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"test@example.com\\\\\"}\"; echo')",
       "Bash(ssh -p 22 iqraacad@da600.is.cc 'find ~/domains/spark.proflowenergy.org -name \"stderr.log\" 2>/dev/null; find / -path /proc -prune -o -name \"passenger.log\" -print 2>/dev/null | head; echo \"---lsnode---\"; ps -eo pid,etime,cmd | grep -i lsnode | grep -v grep; echo \"---direct smtp test---\"; curl -s -X POST https://spark.proflowenergy.org/api/auth/forgot-password -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"mailtoaqibsohail@gmail.com\\\\\"}\"')",
       "Bash(ssh -p 22 iqraacad@da600.is.cc 'tail -80 ~/domains/spark.proflowenergy.org/server/stderr.log')",
-      "Bash(ssh -p 22 iqraacad@da600.is.cc 'cd ~/domains/spark.proflowenergy.org/server && source ~/nodevenv/domains/spark.proflowenergy.org/server/22/bin/activate && node -e \" *)"
+      "Bash(ssh -p 22 iqraacad@da600.is.cc 'cd ~/domains/spark.proflowenergy.org/server && source ~/nodevenv/domains/spark.proflowenergy.org/server/22/bin/activate && node -e \" *)",
+      "WebFetch(domain:www.proflowenergy.org)",
+      "WebFetch(domain:proflowenergy.org)",
+      "Bash(curl -s -L https://proflowenergy.org/)",
+      "Bash(python3 -c ' *)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(npm --version)",
+      "Bash(npx --yes create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --turbopack --use-npm --import-alias \"@/*\" --skip-install --yes)",
+      "Bash(npx --yes create-next-app@latest proflow-energy --typescript --tailwind --eslint --app --src-dir --turbopack --use-npm --import-alias \"@/*\" --skip-install --yes)",
+      "Bash(curl -s -L https://proflowenergy.org/ -o /tmp/pflow.html)",
+      "Bash(curl -sL \"https://proflowenergy.org/wp-content/themes/proflow-energy-theme%20final/style.css?ver=1.0.0\" -o /tmp/pflow-theme.css)"
     ]
   }
 }

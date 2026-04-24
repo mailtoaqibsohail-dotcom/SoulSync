@@ -162,12 +162,33 @@
 }
 
 /* Photo grid */
-.viewprofile-photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.viewprofile-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+  /* Without min-width:0, image intrinsic sizes can force the grid wider than
+     the card on mobile — causing horizontal overflow / "out of frame" look. */
+  min-width: 0;
+}
 .viewprofile-grid-photo {
-  aspect-ratio: 1; object-fit: cover; border-radius: 8px; cursor: pointer;
-  border: 2px solid transparent; transition: border-color 0.2s;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+  display: block;
+  min-width: 0;
 }
 .viewprofile-grid-photo.active { border-color: var(--pink); }
+
+/* Two columns on narrow phones — 3 columns gets cramped below ~480px, and a
+   5-photo profile lays out as 2+2+1 cleanly. */
+@media (max-width: 480px) {
+  .viewprofile-photo-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+}
 
 /* Spark button (fire icon) */
 .viewprofile-action-btn--spark {
