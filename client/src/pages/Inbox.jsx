@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useSocket } from '../context/SocketContext';
 import Chat from './Chat';
 import { DEFAULT_AVATAR } from '../utils/defaults';
 import './Inbox.css';
@@ -30,6 +31,7 @@ const Inbox = () => {
   const { matchId: matchIdFromUrl } = useParams();
   const { user } = useAuth();
   const { unreadMessages } = useNotifications();
+  const { socket } = useSocket();
 
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +57,52 @@ const Inbox = () => {
       .catch((err) => console.error('Load matches error:', err))
       .finally(() => setLoading(false));
   }, []);
+
+  // Live-update the chat list when a message arrives — especially important
+  // for the FIRST message from a brand-new match: without this, the new
+  // conversation only appears after a manual refresh. We also bump existing
+  // matches to the top with the latest preview text so the list feels live.
+  useEffect(() => {
+    if (!socket) return;
+
+    const refetch = () => {
+      axios.get('/api/matches')
+        .then(({ data }) => setMatches(data.matches))
+        .catch((err) => console.error('Refetch matches error:', err));
+    };
+
+    const onIncoming = (msg) => {
+      if (!msg?.matchId) return;
+      setMatches((prev) => {
+        const idx = prev.findIndex((m) => m.matchId === msg.matchId);
+        if (idx === -1) {
+          // Brand-new match — refetch the full list so we get the user object,
+          // photos, online status, etc. populated correctly.
+          refetch();
+          return prev;
+        }
+        // Existing match — update preview + bump to top without a roundtrip.
+        const updated = {
+          ...prev[idx],
+          lastMessage: {
+            text: msg.text,
+            mediaType: msg.mediaType,
+            mediaUrl: msg.mediaUrl,
+          },
+          lastActivity: msg.createdAt || new Date().toISOString(),
+        };
+        return [updated, ...prev.slice(0, idx), ...prev.slice(idx + 1)];
+      });
+    };
+
+    socket.on('receive_message', onIncoming);
+    socket.on('new_match', refetch);
+
+    return () => {
+      socket.off('receive_message', onIncoming);
+      socket.off('new_match', refetch);
+    };
+  }, [socket]);
 
   // When we land directly on /inbox without a matchId, auto-select the most
   // recent conversation on desktop (empty middle pane looks broken).

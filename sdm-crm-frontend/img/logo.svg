@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- M mark: four triangular slabs forming an M, blue → teal → green -->
+  <polygon points="20,30 60,30 60,170 20,170" fill="#1E3A8A"/>
+  <polygon points="60,30 100,30 100,170 60,130" fill="#1E40AF"/>
+  <polygon points="100,30 140,30 140,130 100,170" fill="#14B8A6"/>
+  <polygon points="140,30 180,30 180,170 140,170" fill="#22C55E"/>
+  <!-- diagonal accent connecting the M peaks -->
+  <polygon points="60,30 100,30 100,90 60,90" fill="#2563EB"/>
+  <polygon points="100,30 140,30 140,90 100,90" fill="#10B981"/>
+</svg>

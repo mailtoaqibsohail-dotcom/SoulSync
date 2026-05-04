@@ -1,0 +1,1154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280, initial-scale=1">
+<title>Mari Energies — MOC Management System Presentation</title>
+<style>
+  /* ============= BRAND PALETTE ============= */
+  :root {
+    --navy: #0b2545;
+    --navy-2: #13315c;
+    --blue: #1e40af;
+    --teal: #0891b2;
+    --green: #16a34a;
+    --green-2: #22c55e;
+    --gold: #f59e0b;
+    --red: #dc2626;
+    --bg: #0a1628;
+    --bg-2: #0f1e36;
+    --paper: #ffffff;
+    --paper-2: #f8fafc;
+    --ink: #0f172a;
+    --ink-2: #475569;
+    --muted: #94a3b8;
+    --line: #e2e8f0;
+  }
+
+  * { box-sizing: border-box; margin:0; padding:0; }
+  html, body { height:100%; overflow:hidden; }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    user-select: none;
+  }
+
+  .deck {
+    width:100vw; height:100vh; position:relative; overflow:hidden;
+    background: radial-gradient(ellipse at top right, #13315c 0%, #0a1628 60%);
+  }
+
+  .slide {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    padding: 56px 80px;
+    background: var(--paper);
+    opacity:0; pointer-events:none;
+    transition: opacity .55s ease, transform .55s ease;
+    transform: translateY(24px) scale(.985);
+    overflow:hidden;
+  }
+  .slide.active { opacity:1; pointer-events:auto; transform: none; z-index:5; }
+  .slide.dark { background: linear-gradient(135deg, var(--navy) 0%, var(--bg) 100%); color:#fff; }
+  .slide.dark h1, .slide.dark h2, .slide.dark h3, .slide.dark p { color:#fff; }
+  .slide.brand {
+    background:
+      radial-gradient(ellipse at 80% 20%, rgba(34,197,94,.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 20% 80%, rgba(8,145,178,.20) 0%, transparent 55%),
+      linear-gradient(135deg, #06121f 0%, #0b2545 100%);
+    color:#fff; justify-content:center;
+  }
+
+  /* ============= HEADER / FOOTER ============= */
+  .slide-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 28px;
+  }
+  .slide.dark .slide-header { border-bottom-color: rgba(255,255,255,.08); }
+  .brandbar {
+    display:flex; align-items:center; gap:14px;
+  }
+  .brandbar img { height:42px; }
+  .brandbar .name { font-weight:700; font-size:18px; letter-spacing:.2px; }
+  .brandbar .name span { color: var(--teal); }
+  .slide.dark .brandbar .name { color:#fff; }
+  .slide.dark .brandbar .name span { color: #34d399; }
+
+  .badge {
+    background: linear-gradient(135deg, var(--teal), var(--green));
+    color:#fff; padding:6px 14px; border-radius:999px;
+    font-size:11px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase;
+  }
+  .slide-footer {
+    position:absolute; left:80px; right:80px; bottom:24px;
+    display:flex; align-items:center; justify-content:space-between;
+    color: var(--muted); font-size:12px; letter-spacing:.4px;
+  }
+  .slide.dark .slide-footer { color: rgba(255,255,255,.5); }
+  .progress {
+    position:absolute; left:0; right:0; bottom:0; height:3px; background: rgba(255,255,255,.06);
+  }
+  .progress > div {
+    height:100%; background: linear-gradient(90deg, var(--teal), var(--green));
+    width:0; transition: width .5s ease;
+  }
+
+  /* ============= TYPOGRAPHY ============= */
+  h1 { font-size: 60px; font-weight:800; line-height:1.05; color: var(--ink); letter-spacing:-1px; }
+  h2 { font-size: 38px; font-weight:800; line-height:1.1;  color: var(--navy); letter-spacing:-.5px; margin-bottom:6px;}
+  h3 { font-size: 22px; font-weight:700; color: var(--ink); }
+  .lead { font-size: 18px; color: var(--ink-2); line-height:1.55; }
+  .eyebrow { font-size:12px; letter-spacing:2px; text-transform:uppercase; font-weight:700; color: var(--teal); margin-bottom:10px; }
+  .slide.dark .eyebrow { color: #5eead4; }
+
+  /* ============= COVER ============= */
+  .cover-wrap { text-align:center; max-width:980px; margin:0 auto; }
+  .cover-logo { height:120px; margin-bottom: 28px; filter: drop-shadow(0 12px 40px rgba(34,197,94,.25)); animation: floaty 4s ease-in-out infinite; }
+  .cover-title {
+    font-size:78px; font-weight:900; letter-spacing:-1.5px; line-height:1.04;
+    background: linear-gradient(135deg, #fff 0%, #5eead4 60%, #22c55e 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 16px;
+  }
+  .cover-sub { font-size:24px; color:#cbd5e1; margin-bottom:36px; font-weight:400; }
+  .cover-meta { display:inline-flex; gap:36px; padding:20px 36px; border:1px solid rgba(255,255,255,.12); border-radius:14px; background: rgba(255,255,255,.04); backdrop-filter: blur(10px); }
+  .cover-meta div { text-align:left; }
+  .cover-meta .l { font-size:11px; letter-spacing:1.6px; text-transform:uppercase; color:#5eead4; font-weight:700;}
+  .cover-meta .v { font-size:16px; font-weight:600; color:#fff; margin-top:4px; }
+  @keyframes floaty { 0%,100%{ transform:translateY(0)} 50%{ transform:translateY(-10px)} }
+  @keyframes fadeUp { from {opacity:0; transform:translateY(20px)} to {opacity:1; transform:none;} }
+  .slide.active .anim-1 { animation: fadeUp .7s .1s both; }
+  .slide.active .anim-2 { animation: fadeUp .7s .25s both; }
+  .slide.active .anim-3 { animation: fadeUp .7s .4s both; }
+  .slide.active .anim-4 { animation: fadeUp .7s .55s both; }
+  .slide.active .anim-5 { animation: fadeUp .7s .7s both; }
+  .slide.active .anim-6 { animation: fadeUp .7s .85s both; }
+
+  /* ============= GRIDS / CARDS ============= */
+  .grid { display:grid; gap:20px; }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    background:#fff; border:1px solid var(--line); border-radius:14px;
+    padding:22px; box-shadow: 0 2px 6px rgba(15,23,42,.04);
+    transition: transform .25s ease, box-shadow .25s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(15,23,42,.08); }
+  .card .ico {
+    width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:12px; font-size:20px;
+  }
+  .ico.teal  { background:#cffafe; color:#0e7490; }
+  .ico.blue  { background:#dbeafe; color:#1e40af; }
+  .ico.green { background:#dcfce7; color:#166534; }
+  .ico.amber { background:#fef3c7; color:#92400e; }
+  .ico.red   { background:#fee2e2; color:#991b1b; }
+  .ico.violet{ background:#ede9fe; color:#5b21b6; }
+  .ico.slate { background:#e2e8f0; color:#334155; }
+  .card h3 { margin-bottom:6px; }
+  .card p  { font-size:14px; color: var(--ink-2); line-height:1.5; }
+
+  .stat-card { text-align:center; padding:26px 18px; }
+  .stat-card .v { font-size:42px; font-weight:800; line-height:1; color: var(--teal); }
+  .stat-card .l { font-size:13px; color: var(--ink-2); margin-top:8px; letter-spacing:.5px; }
+
+  /* ============= MOCK UI ============= */
+  .mock {
+    background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden;
+    box-shadow: 0 18px 40px rgba(15,23,42,.12);
+    display:flex; flex-direction:column;
+  }
+  .mock .topbar {
+    height:30px; background:#f1f5f9; display:flex; align-items:center; gap:6px; padding:0 12px;
+    border-bottom:1px solid var(--line);
+  }
+  .mock .topbar i { width:10px; height:10px; border-radius:50%; background:#cbd5e1; }
+  .mock .topbar i:nth-child(1){ background:#ef4444; }
+  .mock .topbar i:nth-child(2){ background:#f59e0b; }
+  .mock .topbar i:nth-child(3){ background:#22c55e; }
+  .mock .body { display:flex; flex:1; min-height:0; }
+  .mock .sidebar { width:170px; background: var(--navy); color:#fff; padding:14px 0; flex-shrink:0; }
+  .mock .sidebar .logo { display:flex; align-items:center; gap:8px; padding:0 14px 14px; border-bottom:1px solid rgba(255,255,255,.08); }
+  .mock .sidebar .logo .lo { width:30px; height:30px; background:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .mock .sidebar .logo .lo img { height:22px; }
+  .mock .sidebar .logo b { font-size:11px; }
+  .mock .sidebar a {
+    display:flex; align-items:center; gap:8px; padding:8px 14px; font-size:11px;
+    color:#cbd5e1; text-decoration:none;
+  }
+  .mock .sidebar a.act { background: linear-gradient(90deg, rgba(34,197,94,.18), transparent); color:#fff; border-left:3px solid #22c55e; padding-left:11px; }
+  .mock .sidebar a .dot { width:14px; text-align:center; }
+  .mock .main { flex:1; padding:18px; overflow:hidden; background: var(--paper-2); }
+  .mock .main h4 { font-size:14px; margin-bottom:10px; color: var(--ink); }
+
+  .kpi-row { display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; margin-bottom:14px; }
+  .kpi { background:#fff; border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+  .kpi .label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+  .kpi .value { font-size:16px; font-weight:700; color:var(--ink); margin-top:2px; }
+
+  .table-mock { width:100%; border-collapse:collapse; background:#fff; border-radius:8px; overflow:hidden; border:1px solid var(--line); }
+  .table-mock th, .table-mock td { font-size:10px; padding:6px 8px; text-align:left; border-bottom:1px solid var(--line); }
+  .table-mock th { background:#f8fafc; font-weight:700; color:var(--ink-2); text-transform:uppercase; letter-spacing:.4px; }
+  .pill { display:inline-block; padding:2px 6px; border-radius:6px; font-size:9px; font-weight:600; }
+  .pill.amber { background:#fef3c7; color:#92400e; }
+  .pill.green { background:#dcfce7; color:#166534; }
+  .pill.red { background:#fee2e2; color:#991b1b; }
+  .pill.blue { background:#dbeafe; color:#1e40af; }
+  .pill.violet{ background:#ede9fe; color:#5b21b6; }
+  .pill.slate { background:#e2e8f0; color:#334155; }
+
+  /* ============= LIFECYCLE / CHAIN ============= */
+  .lifecycle {
+    display:flex; gap:0; align-items:stretch; margin-top:18px;
+  }
+  .stage {
+    flex:1; padding:18px 14px; color:#fff; position:relative;
+    clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%, 18px 50%);
+    margin-left: -18px; transition: transform .3s;
+  }
+  .stage:first-child { margin-left:0; clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 50%, calc(100% - 18px) 100%, 0 100%); }
+  .stage:hover { transform: translateY(-4px); }
+  .stage .num { font-size:11px; opacity:.85; letter-spacing:1px; font-weight:700; }
+  .stage .name { font-size:16px; font-weight:800; margin-top:4px; }
+  .stage .desc { font-size:11px; margin-top:6px; opacity:.92; line-height:1.4; }
+  .stage.s1 { background: linear-gradient(135deg, #1e40af, #3b82f6); }
+  .stage.s2 { background: linear-gradient(135deg, #5b21b6, #8b5cf6); }
+  .stage.s3 { background: linear-gradient(135deg, #b45309, #f59e0b); }
+  .stage.s4 { background: linear-gradient(135deg, #166534, #22c55e); }
+
+  .chain {
+    display:flex; flex-direction:column; gap:6px; max-height: 460px; overflow:auto;
+  }
+  .chain-row {
+    display:flex; align-items:center; gap:14px; padding:10px 14px;
+    background:#fff; border:1px solid var(--line); border-radius:10px;
+    position:relative;
+  }
+  .chain-row::before {
+    content:''; position:absolute; left:25px; top:-6px; width:2px; height:6px; background: var(--line);
+  }
+  .chain-row:first-child::before { display:none; }
+  .chain-row .seq {
+    width:32px; height:32px; border-radius:50%; background: var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:13px; flex-shrink:0;
+  }
+  .chain-row .pos { flex:1; font-size:13px; font-weight:600; color:var(--ink); }
+  .chain-row .who { font-size:11px; color:var(--ink-2); }
+  .chain-row.maj .seq { background: linear-gradient(135deg,#16a34a,#22c55e); }
+  .chain-row.cur { border-color: var(--gold); background: #fffbeb; box-shadow: 0 0 0 4px rgba(245,158,11,.12); }
+
+  /* ============= SIDEBAR / DARK ROW ============= */
+  .two-col { display:grid; grid-template-columns: 1fr 1fr; gap:36px; align-items:start; }
+  .check-list li { list-style:none; padding:10px 0; border-bottom:1px dashed rgba(255,255,255,.08); display:flex; gap:12px; align-items:flex-start; font-size:15px; }
+  .check-list li::before { content:'✓'; color:#22c55e; font-weight:700; width:24px; height:24px; border-radius:50%; background: rgba(34,197,94,.16); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:12px; }
+  .slide:not(.dark) .check-list li { border-bottom-color: var(--line); color: var(--ink); }
+
+  .quote {
+    border-left: 4px solid var(--teal); padding:18px 22px; background: rgba(8,145,178,.06); border-radius:6px;
+    font-size:18px; color:var(--ink); font-style:italic;
+  }
+
+  /* ============= NAVIGATION ============= */
+  .nav {
+    position:fixed; bottom:18px; right:24px; display:flex; gap:10px; z-index:100;
+  }
+  .nav button {
+    width:40px; height:40px; border-radius:50%; border:none;
+    background: rgba(255,255,255,.92); color: var(--navy); cursor:pointer;
+    font-size:14px; font-weight:700; box-shadow: 0 4px 12px rgba(0,0,0,.18);
+    transition: transform .15s;
+  }
+  .nav button:hover { transform: scale(1.08); }
+  .nav .num { background: var(--navy); color:#fff; padding:0 14px; width:auto; border-radius:20px; }
+
+  .hint {
+    position:fixed; bottom:24px; left:24px; color: rgba(255,255,255,.55); font-size:11px; letter-spacing:.5px; z-index:100;
+  }
+  .slide.active:not(.dark) ~ .hint { color: rgba(15,23,42,.45); }
+
+  /* tags */
+  .tag-row { display:flex; flex-wrap:wrap; gap:8px; }
+  .tag {
+    background: var(--navy); color:#fff; padding:6px 12px; border-radius:8px;
+    font-size:12px; font-weight:600;
+  }
+  .tag.outline { background:transparent; border:1px solid var(--navy); color:var(--navy); }
+  .slide.dark .tag.outline { border-color: rgba(255,255,255,.4); color:#fff; }
+
+  /* feature pill icons */
+  .feat { display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid var(--line); }
+  .feat:last-child { border-bottom:none; }
+  .feat .b { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .feat strong { font-size:15px; color:var(--ink); display:block; margin-bottom:2px; }
+  .feat span { font-size:13px; color:var(--ink-2); line-height:1.4; }
+
+  /* big hierarchy diagram */
+  .pyramid { display:flex; flex-direction:column; gap:8px; }
+  .pyramid .lvl {
+    display:flex; gap:8px; justify-content:center;
+  }
+  .pyramid .node {
+    background:#fff; border:1.5px solid var(--line); padding:10px 14px; border-radius:10px;
+    font-size:11px; font-weight:600; color:var(--ink); min-width:120px; text-align:center;
+    box-shadow: 0 2px 6px rgba(15,23,42,.05);
+  }
+  .pyramid .lvl.top .node { background: linear-gradient(135deg, var(--navy), var(--blue)); color:#fff; border-color: transparent; }
+  .pyramid .lvl.dir .node { background: linear-gradient(135deg, #5b21b6, #7c3aed); color:#fff; border-color: transparent; }
+  .pyramid .lvl.mgr .node { background: linear-gradient(135deg, #0e7490, #0891b2); color:#fff; border-color: transparent; }
+  .pyramid .lvl.fld .node { background: linear-gradient(135deg, #166534, #22c55e); color:#fff; border-color: transparent; }
+  .pyramid .lvl.ori .node { background: var(--paper); border-color: var(--gold); color: var(--ink); }
+
+  /* arrows */
+  .flow {
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px;
+  }
+  .flow .step {
+    background:#fff; border:2px solid var(--line); border-radius:10px; padding:12px 16px;
+    font-size:12px; font-weight:600; color:var(--ink);
+  }
+  .flow .step.act { border-color: var(--green); background: rgba(34,197,94,.07); }
+  .flow .arr { color: var(--muted); font-size:18px; }
+
+  /* highlights */
+  .ribbon {
+    display:inline-block; padding:4px 12px; background:#fef3c7; color:#92400e; border-radius:6px; font-weight:700; font-size:11px; letter-spacing:.5px; text-transform:uppercase;
+  }
+
+  /* ===== Q&A box ===== */
+  .qa { padding:20px 24px; border-radius:12px; background:#fff; border-left:4px solid var(--teal); margin-bottom:14px; }
+  .slide.dark .qa { background: rgba(255,255,255,.06); border-left-color: #5eead4; }
+  .qa q { font-size:15px; font-weight:600; display:block; margin-bottom:6px; color: var(--ink); }
+  .slide.dark .qa q { color:#fff; }
+  .qa p { font-size:13px; color: var(--ink-2); line-height:1.55; }
+  .slide.dark .qa p { color: rgba(255,255,255,.78); }
+
+  /* compliance ribbon */
+  .comp-strip { display:flex; gap:14px; padding:14px 18px; background: var(--paper-2); border-radius:12px; border:1px solid var(--line); }
+  .comp-strip .item { flex:1; text-align:center; }
+  .comp-strip .item .v { font-size:22px; font-weight:800; color:var(--teal); }
+  .comp-strip .item .l { font-size:11px; color: var(--ink-2); margin-top:4px; }
+
+  /* tech stack badges */
+  .stack { display:flex; flex-wrap:wrap; gap:10px; }
+  .stack .tech {
+    padding:10px 14px; border-radius:10px; font-size:13px; font-weight:600;
+    color:#fff; box-shadow: 0 4px 10px rgba(0,0,0,.15);
+  }
+  .tech.node { background: linear-gradient(135deg,#166534,#22c55e); }
+  .tech.exp  { background: linear-gradient(135deg,#475569,#64748b); }
+  .tech.maria{ background: linear-gradient(135deg,#0c4a6e,#0284c7); }
+  .tech.seq  { background: linear-gradient(135deg,#7c2d12,#c2410c); }
+  .tech.js   { background: linear-gradient(135deg,#a16207,#eab308); color:#1f2937; }
+  .tech.css  { background: linear-gradient(135deg,#1e40af,#3b82f6); }
+  .tech.pdf  { background: linear-gradient(135deg,#991b1b,#dc2626); }
+  .tech.jwt  { background: linear-gradient(135deg,#5b21b6,#7c3aed); }
+
+  /* watermark */
+  .wm {
+    position:absolute; right:-60px; bottom:-60px; width:300px; opacity:.04; pointer-events:none;
+  }
+
+  @media (max-width: 1100px) { h1{ font-size:48px; } h2{ font-size:30px; } .slide { padding:36px 48px; } }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ====================== SLIDE 1 — COVER ====================== -->
+  <section class="slide brand active">
+    <div class="cover-wrap">
+      <img src="logo.png" class="cover-logo anim-1" alt="Mari Energies">
+      <div class="eyebrow anim-2">MSP-HSE-08 · Management of Change</div>
+      <h1 class="cover-title anim-3">MOC Management System</h1>
+      <p class="cover-sub anim-4">A digital, end-to-end platform for safer, faster, fully traceable change management at Mari Energies.</p>
+      <div class="cover-meta anim-5">
+        <div><div class="l">Built for</div><div class="v">Mari Energies Limited</div></div>
+        <div><div class="l">Standard</div><div class="v">MSP-HSE-08</div></div>
+        <div><div class="l">Status</div><div class="v">Live · mari.proflowenergy.org</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== SLIDE 2 — AGENDA ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Agenda</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Today's session</div><h2>What we'll cover</h2></div>
+    <div class="grid grid-3" style="margin-top:30px">
+      <div class="card anim-2"><div class="ico teal">①</div><h3>The Challenge</h3><p>Why a digital MOC system, and what's painful about paper-based change control today.</p></div>
+      <div class="card anim-2"><div class="ico blue">②</div><h3>The Solution</h3><p>An overview of the platform, its lifecycle, and how it implements MSP-HSE-08.</p></div>
+      <div class="card anim-2"><div class="ico green">③</div><h3>Approval Hierarchy</h3><p>How a MOC flows through the Mari chain — from JRE to Director Operations.</p></div>
+      <div class="card anim-3"><div class="ico violet">④</div><h3>Live Walkthrough</h3><p>Screenshots of the actual system: KPIs, register, audit, hierarchy preview.</p></div>
+      <div class="card anim-3"><div class="ico amber">⑤</div><h3>Compliance & Security</h3><p>Audit trails, role-based access, JWT auth, encrypted DB, role separation.</p></div>
+      <div class="card anim-3"><div class="ico red">⑥</div><h3>Q&A</h3><p>Anticipated questions answered — and time for yours.</p></div>
+    </div>
+    <div class="slide-footer"><span>Slide 2 / 22</span><span>MOC Management System · Mari Energies</span></div>
+  </section>
+
+  <!-- ====================== SLIDE 3 — THE PROBLEM ====================== -->
+  <section class="slide dark">
+    <img src="logo.png" class="wm">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Problem</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Why we need this</div><h2>The cost of manual change control</h2></div>
+
+    <div class="two-col" style="margin-top:30px">
+      <div class="anim-2">
+        <ul class="check-list" style="list-style:none">
+          <li><div><strong>Paper forms get lost.</strong> A signed Annexure-H stuck in someone's tray is a stalled MOC — and a safety risk.</div></li>
+          <li><div><strong>Approval chains break.</strong> When a manager is on leave, work waits days. There's no formal way to delegate.</div></li>
+          <li><div><strong>No visibility.</strong> Leadership cannot see how many MOCs are open, where they're stuck, or which are overdue.</div></li>
+          <li><div><strong>Audit trails are fragile.</strong> Who approved what, when, and why — that history lives in scanned PDFs and emails.</div></li>
+          <li><div><strong>Temporary changes expire silently.</strong> Without alerts, a 90-day temporary MOC can outlive its window unnoticed.</div></li>
+        </ul>
+      </div>
+      <div class="anim-3">
+        <div class="card" style="background:rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); color:#fff">
+          <div class="ico red" style="background:rgba(220,38,38,.18); color:#fca5a5">⚠</div>
+          <h3 style="color:#fff">Real consequences</h3>
+          <p style="color:rgba(255,255,255,.78)">Process safety incidents are tied directly to poor change control. The OSHA <em>Process Safety Management</em> standard explicitly cites "management of change" as a leading indicator of plant safety.</p>
+        </div>
+        <div class="card" style="background:rgba(34,197,94,.09); border-color: rgba(34,197,94,.25); color:#fff; margin-top:14px">
+          <div class="ico green" style="background:rgba(34,197,94,.2); color:#86efac">✓</div>
+          <h3 style="color:#fff">What we're aiming for</h3>
+          <p style="color:rgba(255,255,255,.85)">100% traceability. Zero lost forms. Live KPIs. Automatic delegation. Audit-grade history at the click of a button.</p>
+        </div>
+      </div>
+    </div>
+    <div class="progress"><div style="width:13%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 4 — MSP-HSE-08 COMPLIANCE ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Compliance</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Standard alignment</div><h2>Built around MSP-HSE-08</h2><p class="lead" style="margin-top:6px;max-width:880px">The system is not a generic workflow tool — every screen, every form, every approval gate is modelled exactly on Mari Energies' MSP-HSE-08 Management of Change procedure.</p></div>
+
+    <div class="grid grid-4 anim-2" style="margin-top:24px">
+      <div class="card"><div class="ico teal">📜</div><strong style="display:block;margin-bottom:4px">§3.4.3</strong><p>The exact 9–10-level approval chain, encoded in code.</p></div>
+      <div class="card"><div class="ico blue">📋</div><strong style="display:block;margin-bottom:4px">Annexure C</strong><p>MOC Screening Criteria — captured as the Risk Screening form.</p></div>
+      <div class="card"><div class="ico violet">🏷️</div><strong style="display:block;margin-bottom:4px">Annexure D1 / D2</strong><p>Classification (Minor/Major) and Risk Level (Low/High).</p></div>
+      <div class="card"><div class="ico green">📑</div><strong style="display:block;margin-bottom:4px">Annexure H</strong><p>Change Request Form — pixel-accurate digital preview &amp; print.</p></div>
+    </div>
+
+    <div class="comp-strip anim-3" style="margin-top:30px">
+      <div class="item"><div class="v">4</div><div class="l">MSP-HSE-08 Stages</div></div>
+      <div class="item"><div class="v">10</div><div class="l">Hierarchy Positions</div></div>
+      <div class="item"><div class="v">4</div><div class="l">Chain Variants</div></div>
+      <div class="item"><div class="v">8</div><div class="l">Risk Screening Questions</div></div>
+      <div class="item"><div class="v">100%</div><div class="l">Audit Coverage</div></div>
+    </div>
+
+    <div class="quote anim-4" style="margin-top:30px">
+      <strong>"What is in the procedure document is what is in the software."</strong> No interpretation. No ambiguity. No "this is the way we've always done it."
+    </div>
+    <div class="slide-footer"><span>Slide 4 / 22</span><span>MOC Management System · Mari Energies</span></div>
+  </section>
+
+  <!-- ====================== SLIDE 5 — SOLUTION OVERVIEW ====================== -->
+  <section class="slide dark">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Solution</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Platform overview</div><h2 style="color:#fff">One system, every change, every signature, every minute.</h2></div>
+
+    <div class="two-col anim-2" style="margin-top:30px">
+      <div>
+        <p style="color:rgba(255,255,255,.85); font-size:16px; line-height:1.65">A web-based, role-driven application that lives at <strong style="color:#5eead4">mari.proflowenergy.org</strong>. Any approved Mari user can access it from a browser — no install, no plug-ins.</p>
+        <ul class="check-list" style="margin-top:18px">
+          <li><div><strong>End-to-end lifecycle.</strong> From JRE initiation to closeout PSSR — one record, one timeline.</div></li>
+          <li><div><strong>Auto-routed approvals.</strong> The system computes the right chain (Minor / Major+Capital / Major+Non-Capital) and assigns the right people.</div></li>
+          <li><div><strong>Live KPIs.</strong> Director-level dashboards show open MOCs, overdue temporaries, average cycle time.</div></li>
+          <li><div><strong>PDF generation on demand.</strong> Annexure-H Change Request, Minute Sheet, Audit Report — one click.</div></li>
+          <li><div><strong>Mobile-friendly.</strong> Approvers in the field can authorise from a phone.</div></li>
+        </ul>
+      </div>
+      <div class="anim-3">
+        <div class="mock" style="height:380px">
+          <div class="topbar"><i></i><i></i><i></i></div>
+          <div class="body">
+            <div class="sidebar">
+              <div class="logo"><div class="lo"><img src="logo.png"></div><b>MOC<br>Mari Energies</b></div>
+              <a><span class="dot">▣</span>Dashboard</a>
+              <a class="act"><span class="dot">⇄</span>MOC Register</a>
+              <a><span class="dot">📋</span>MOC Audit</a>
+              <a><span class="dot">🏢</span>Clients</a>
+              <a><span class="dot">📁</span>Projects</a>
+              <a><span class="dot">👥</span>Users</a>
+            </div>
+            <div class="main">
+              <h4>MOC KPIs</h4>
+              <div class="kpi-row">
+                <div class="kpi"><div class="label">TOTAL</div><div class="value">42</div></div>
+                <div class="kpi"><div class="label">OPEN</div><div class="value">12</div></div>
+                <div class="kpi"><div class="label">MAJOR</div><div class="value">7</div></div>
+                <div class="kpi"><div class="label">HIGH RISK</div><div class="value">3</div></div>
+              </div>
+              <table class="table-mock">
+                <thead><tr><th>MOC #</th><th>Title</th><th>Stage</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="pill blue">MOC-Mari-2026-001</span></td><td>Compressor Trim</td><td>2</td><td><span class="pill amber">In Review</span></td></tr>
+                  <tr><td><span class="pill blue">MOC-Mari-2026-002</span></td><td>Pipeline Bypass</td><td>3</td><td><span class="pill green">Approved</span></td></tr>
+                  <tr><td><span class="pill blue">MOC-Mari-2026-003</span></td><td>Valve Replacement</td><td>1</td><td><span class="pill slate">Draft</span></td></tr>
+                  <tr><td><span class="pill blue">MOC-Mari-2026-004</span></td><td>Control Valve</td><td>2</td><td><span class="pill red">Revision Required</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="progress"><div style="width:22%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 6 — KEY FEATURES ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Features</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">What's inside</div><h2>Twelve capabilities that replace twelve binders.</h2></div>
+
+    <div class="grid grid-3" style="margin-top:24px;gap:14px">
+      <div class="card anim-2"><div class="ico teal">🚀</div><strong>Auto MOC Numbering</strong><p>Format: <code>MOC-{Field}-{Year}-NNNN</code>. Sequence is tamper-proof.</p></div>
+      <div class="card anim-2"><div class="ico blue">⚙️</div><strong>4-Stage Lifecycle</strong><p>Initiate → Classify/Approve → Execute → Close (PSSR + Closeout).</p></div>
+      <div class="card anim-2"><div class="ico violet">🔗</div><strong>Hierarchy Routing</strong><p>9 or 10 approvers, picked automatically by classification &amp; capital flag.</p></div>
+      <div class="card anim-3"><div class="ico amber">🎯</div><strong>Delegation</strong><p>Approver away? Forward to any subordinate — fully audited.</p></div>
+      <div class="card anim-3"><div class="ico red">↩</div><strong>Reject &amp; Resubmit</strong><p>Rejected with comments → status flips to <em>Revision Required</em>; chain rebuilds on resubmit.</p></div>
+      <div class="card anim-3"><div class="ico green">📑</div><strong>Annexure H Preview</strong><p>One-click pixel-accurate Change Request Form for printing or signing.</p></div>
+      <div class="card anim-4"><div class="ico slate">📜</div><strong>Minute Sheet PDF</strong><p>Annexure-H equivalent — every approval, every timestamp, every comment.</p></div>
+      <div class="card anim-4"><div class="ico teal">📊</div><strong>MOC Audit Report</strong><p>Date-range analytics with exportable PDF — for ISO/HSE auditors.</p></div>
+      <div class="card anim-4"><div class="ico blue">⏰</div><strong>Auto-Expiry Alerts</strong><p>Temporary MOCs flagged before they expire; auto-status when overdue.</p></div>
+      <div class="card anim-5"><div class="ico violet">🔐</div><strong>Role-Based Access</strong><p>Engineer / Approver / Viewer / Admin — granular permissions per route.</p></div>
+      <div class="card anim-5"><div class="ico amber">📂</div><strong>Stage Forms</strong><p>Risk Screening, ISR, PSSR, Closeout — structured, validated, attached.</p></div>
+      <div class="card anim-5"><div class="ico green">📈</div><strong>Director Dashboard</strong><p>Cycle times, pipeline by stage, originator workload — at a glance.</p></div>
+    </div>
+    <div class="slide-footer"><span>Slide 6 / 22</span><span>MOC Management System · Mari Energies</span></div>
+  </section>
+
+  <!-- ====================== SLIDE 7 — LIFECYCLE ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Lifecycle</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Stage by stage</div><h2>The 4-stage MOC lifecycle</h2></div>
+
+    <div class="lifecycle anim-2">
+      <div class="stage s1"><div class="num">STAGE 1</div><div class="name">Initiate</div><div class="desc">JRE files Change Request. Risk screening (Annexure-C) + classification (D1/D2). Field In Charge signs.</div></div>
+      <div class="stage s2"><div class="num">STAGE 2</div><div class="name">Classify &amp; Approve</div><div class="desc">Hierarchy chain reviews work-pack. Functional review by Mgr Production / MAI / HSE, then MPO/EM, then Dir Ops or Head EDP.</div></div>
+      <div class="stage s3"><div class="num">STAGE 3</div><div class="name">Execute</div><div class="desc">Work pack executed under PTW. PSSR (Pre-Startup Safety Review) gate before re-commissioning.</div></div>
+      <div class="stage s4"><div class="num">STAGE 4</div><div class="name">Close / PSSR</div><div class="desc">Drawings updated, dossier compiled, temporary changes reverted. Closeout signed off.</div></div>
+    </div>
+
+    <div class="grid grid-2 anim-3" style="margin-top:30px">
+      <div class="card">
+        <div class="ico amber">⏱</div>
+        <h3>Temporary changes</h3>
+        <p>Maximum 180 days. The system enforces an expiry date at creation, alerts the originator at T-30 days, and auto-flags overdue MOCs in red on every dashboard.</p>
+      </div>
+      <div class="card">
+        <div class="ico green">📌</div>
+        <h3>Capital projects</h3>
+        <p>If "Capital Project" is ticked on a Major MOC, Head EDP is added to the chain after Director Operations. Non-capital Major routes Head EDP earlier — both per §3.4.3.</p>
+      </div>
+    </div>
+    <div class="progress"><div style="width:31%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 8 — HIERARCHY ====================== -->
+  <section class="slide dark">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Hierarchy</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">The Mari approval chain</div><h2 style="color:#fff">From JRE to Director — encoded exactly.</h2></div>
+
+    <div class="pyramid anim-2" style="margin-top:24px">
+      <div class="lvl top"><div class="node">Director Operations</div><div class="node">Head EDP <small style="opacity:.8">(Major / Capital)</small></div></div>
+      <div class="lvl dir"><div class="node">Director HSE</div><div class="node">Manager Process Operations</div></div>
+      <div class="lvl mgr"><div class="node">Manager HSE</div><div class="node">Engineering Manager</div><div class="node">Manager MAI</div></div>
+      <div class="lvl mgr"><div class="node">MOC Interface (HO Ops)</div><div class="node">Manager Production</div></div>
+      <div class="lvl fld"><div class="node">Field In Charge / Plant Manager / RMS</div></div>
+      <div class="lvl ori"><div class="node">JRE — Originator</div></div>
+    </div>
+
+    <div class="grid grid-3 anim-3" style="margin-top:24px">
+      <div class="card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)"><div class="ico blue">↑</div><strong style="color:#fff">Sequential</strong><p style="color:rgba(255,255,255,.78)">A step only opens after the one below it is approved. Skipping is impossible.</p></div>
+      <div class="card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)"><div class="ico green">≡</div><strong style="color:#fff">Position-based</strong><p style="color:rgba(255,255,255,.78)">Each user has a <em>moc_position</em> attribute. The system finds the holder of each position at runtime.</p></div>
+      <div class="card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)"><div class="ico amber">⤴</div><strong style="color:#fff">Reject = full reset</strong><p style="color:rgba(255,255,255,.78)">A rejection at any level cancels later steps and bounces back to the JRE for revision.</p></div>
+    </div>
+    <div class="progress"><div style="width:36%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 9 — MINOR vs MAJOR CHAINS ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Chain Variants</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Four chains, picked automatically</div><h2>Minor vs Major · Capital vs Non-Capital</h2></div>
+
+    <div class="two-col anim-2" style="margin-top:24px">
+      <div>
+        <h3 style="color:var(--green);margin-bottom:10px">🟢 Minor MOC — 9 levels</h3>
+        <div class="chain">
+          <div class="chain-row"><div class="seq">1</div><div class="pos">Field In Charge</div></div>
+          <div class="chain-row"><div class="seq">2</div><div class="pos">Manager Production</div></div>
+          <div class="chain-row"><div class="seq">3</div><div class="pos">MOC Interface</div></div>
+          <div class="chain-row"><div class="seq">4</div><div class="pos">Manager MAI</div></div>
+          <div class="chain-row"><div class="seq">5</div><div class="pos">Engineering Manager</div></div>
+          <div class="chain-row"><div class="seq">6</div><div class="pos">Manager HSE</div></div>
+          <div class="chain-row"><div class="seq">7</div><div class="pos">Manager Process Ops</div></div>
+          <div class="chain-row"><div class="seq">8</div><div class="pos">Director HSE</div></div>
+          <div class="chain-row"><div class="seq">9</div><div class="pos">Director Operations</div></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color:var(--red);margin-bottom:10px">🔴 Major + Capital — 10 levels</h3>
+        <div class="chain">
+          <div class="chain-row maj"><div class="seq">1</div><div class="pos">Field In Charge</div></div>
+          <div class="chain-row maj"><div class="seq">2</div><div class="pos">Manager Production</div></div>
+          <div class="chain-row maj"><div class="seq">3</div><div class="pos">MOC Interface</div></div>
+          <div class="chain-row maj"><div class="seq">4</div><div class="pos">Manager MAI</div></div>
+          <div class="chain-row maj"><div class="seq">5</div><div class="pos">Engineering Manager</div></div>
+          <div class="chain-row maj"><div class="seq">6</div><div class="pos">Manager HSE</div></div>
+          <div class="chain-row maj"><div class="seq">7</div><div class="pos">Manager Process Ops</div></div>
+          <div class="chain-row maj"><div class="seq">8</div><div class="pos">Director HSE</div></div>
+          <div class="chain-row maj"><div class="seq">9</div><div class="pos">Director Operations</div></div>
+          <div class="chain-row maj cur"><div class="seq">10</div><div class="pos">Head EDP <span class="ribbon" style="margin-left:8px">Capital</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Slide 9 / 22</span><span>Major + Non-Capital inserts Head EDP between Director HSE and Director Ops</span></div>
+  </section>
+
+  <!-- ====================== SLIDE 10 — DELEGATION ====================== -->
+  <section class="slide dark">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Delegation</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">"What if my approver is on leave?"</div><h2 style="color:#fff">Bumble-style delegation, but for safety.</h2></div>
+
+    <div class="two-col anim-2" style="margin-top:30px">
+      <div>
+        <p style="color:rgba(255,255,255,.85);font-size:16px;line-height:1.65">Each user has a <strong style="color:#5eead4">"Reports To"</strong> link. When approval lands in your inbox and you're unavailable, click <strong>Delegate</strong> and pick anyone in your reporting tree.</p>
+        <ul class="check-list" style="margin-top:18px">
+          <li><div><strong>Transitive.</strong> Subordinates of subordinates count too. Your full reporting tree is eligible.</div></li>
+          <li><div><strong>Audited.</strong> The original assignee, the delegate, and the timestamp are all preserved on the step record.</div></li>
+          <li><div><strong>Indicated.</strong> The chain row shows a "delegated" badge so reviewers can see the rerouting.</div></li>
+          <li><div><strong>Bounded.</strong> You can only delegate <em>downwards</em>. No accidental sideways or upwards transfer.</div></li>
+        </ul>
+      </div>
+      <div class="anim-3">
+        <div class="mock" style="height:340px">
+          <div class="topbar"><i></i><i></i><i></i></div>
+          <div class="main" style="padding:20px">
+            <div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:10px;padding:14px">
+              <strong style="color:#92400e">⚖ Action Required — your turn as Manager Production</strong>
+              <p style="font-size:11px;margin-top:8px;color:#475569">A subtle production change has been routed to you. You're at a remote site for the next 3 days.</p>
+              <div style="margin-top:10px;padding:10px;background:#fff;border-radius:6px;border:1px solid #e2e8f0">
+                <div style="font-size:10px;color:#94a3b8;margin-bottom:4px">DELEGATE TO</div>
+                <select style="width:100%;font-size:11px;padding:6px;border:1px solid #e2e8f0;border-radius:4px"><option>Tariq Ahmed — Asst. Mgr Production</option></select>
+              </div>
+              <div style="margin-top:10px;display:flex;gap:6px">
+                <button style="background:#0f172a;color:#fff;font-size:11px;padding:6px 12px;border:none;border-radius:6px">✓ Approve</button>
+                <button style="background:#fff;border:1px solid #dc2626;color:#dc2626;font-size:11px;padding:6px 12px;border-radius:6px">✕ Reject</button>
+                <button style="background:#fff;border:1px solid #e2e8f0;font-size:11px;padding:6px 12px;border-radius:6px">👥 Delegate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="progress"><div style="width:45%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 11 — REJECT FLOW ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Reject Flow</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">When the answer is "no, fix this"</div><h2>Reject → Revision Required → Resubmit</h2></div>
+
+    <div class="flow anim-2" style="margin-top:24px">
+      <div class="step act">JRE Submits</div>
+      <div class="arr">→</div>
+      <div class="step act">Field In Charge ✓</div>
+      <div class="arr">→</div>
+      <div class="step act">Mgr Production ✓</div>
+      <div class="arr">→</div>
+      <div class="step" style="border-color:#dc2626;color:#dc2626;background:#fee2e2">MOC Interface ✕ Rejected</div>
+      <div class="arr">↩</div>
+      <div class="step" style="border-color:#f59e0b;color:#92400e;background:#fef3c7"><strong>Status: Revision Required</strong></div>
+    </div>
+
+    <div class="grid grid-3 anim-3" style="margin-top:36px">
+      <div class="card"><div class="ico red">①</div><strong>Comments are mandatory</strong><p>The system blocks a rejection without comments. The originator must know <em>why</em>.</p></div>
+      <div class="card"><div class="ico amber">②</div><strong>Later steps cancelled</strong><p>All approval steps after the rejection are marked "cancelled" — they don't show as pending.</p></div>
+      <div class="card"><div class="ico green">③</div><strong>Originator gets the ball back</strong><p>The MOC re-opens for editing. Title, narratives, classification — all editable. Then resubmit.</p></div>
+    </div>
+
+    <div class="card anim-4" style="margin-top:18px;background:linear-gradient(135deg,#dcfce7,#fef3c7);border:none;padding:18px">
+      <strong>On resubmit</strong> the chain is rebuilt from scratch. If the JRE upgraded the classification from Minor to Major, the new chain reflects that — automatically.
+    </div>
+    <div class="progress"><div style="width:50%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 12 — RISK SCREENING / FORMS ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Stage Forms</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Annexure C, D1, D2 — and beyond</div><h2>Four structured forms across the lifecycle</h2></div>
+
+    <div class="grid grid-4 anim-2" style="margin-top:24px">
+      <div class="card">
+        <div class="ico teal">🛡</div>
+        <strong>Risk Screening</strong>
+        <p>Stage 1 — JRE answers 8 yes/no/N-A questions covering SIL equipment, design envelope, emergency systems, P&amp;ID changes, hazardous chemicals, regulatory permits, plant availability, training. Recommends classification + risk level.</p>
+      </div>
+      <div class="card">
+        <div class="ico blue">📋</div>
+        <strong>Internal Safety Review</strong>
+        <p>Stage 2 — HAZOP, JSA, redlines, relief review, electrical area class, material MOC, training, spares. Outstanding actions captured.</p>
+      </div>
+      <div class="card">
+        <div class="ico violet">✅</div>
+        <strong>PSSR</strong>
+        <p>Stage 3 — Pre-Startup Safety Review. Conducted on-site, walkdown findings, attendees, Cat-A actions closed, approved-for-startup gate.</p>
+      </div>
+      <div class="card">
+        <div class="ico green">🏁</div>
+        <strong>Closeout</strong>
+        <p>Stage 4 — Drawings updated, procedures revised, Cat-B actions closed, dossier compiled, temporaries reverted, verification recorded.</p>
+      </div>
+    </div>
+
+    <div class="quote anim-3" style="margin-top:30px">
+      Every form supports <strong>Draft → Submit → Approve → Reopen</strong>. Submitter and approver are always different people — segregation of duty enforced at the API.
+    </div>
+    <div class="slide-footer"><span>Slide 12 / 22</span><span>Forms drive the workflow — chain steps gate on form completion</span></div>
+  </section>
+
+  <!-- ====================== SLIDE 13 — ANNEXURE H + MINUTE SHEET ====================== -->
+  <section class="slide dark">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Documents</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">PDF on demand</div><h2 style="color:#fff">Annexure H Preview · Minute Sheet · Audit Report</h2></div>
+
+    <div class="grid grid-3 anim-2" style="margin-top:24px">
+      <div class="card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="ico teal" style="background:rgba(94,234,212,.15);color:#5eead4">📄</div>
+        <strong style="color:#fff">Annexure H Preview</strong>
+        <p style="color:rgba(255,255,255,.78)">Click <em>Preview</em> on any MOC. Get a pixel-accurate digital version of the official Mari Energies Change Request Form, including signature blocks for every approver.</p>
+      </div>
+      <div class="card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="ico violet" style="background:rgba(139,92,246,.18);color:#c4b5fd">📜</div>
+        <strong style="color:#fff">Minute Sheet PDF</strong>
+        <p style="color:rgba(255,255,255,.78)">Annexure-H Minute Sheet equivalent: every approval level with name, position, action, timestamp, comments. Color-coded by status.</p>
+      </div>
+      <div class="card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="ico green" style="background:rgba(34,197,94,.18);color:#86efac">📊</div>
+        <strong style="color:#fff">MOC Audit Report</strong>
+        <p style="color:rgba(255,255,255,.78)">Date-range PDF with totals, cycle times, distributions, originator workload, full MOC list. Designed for ISO/HSE auditors.</p>
+      </div>
+    </div>
+
+    <div class="anim-3" style="margin-top:30px;padding:30px;background:rgba(255,255,255,.04);border-radius:14px;border:1px dashed rgba(255,255,255,.2)">
+      <h3 style="color:#fff;margin-bottom:8px">🖨 Print-ready</h3>
+      <p style="color:rgba(255,255,255,.78);font-size:14px;line-height:1.6">All three documents render to A4, with Mari Energies branding, page breaks at the right place, and signatures captured from the live chain. Auditors can save to PDF or send to printer directly.</p>
+    </div>
+    <div class="progress"><div style="width:59%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 14 — KPIs / DASHBOARD ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Director Dashboard</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Live KPIs</div><h2>What leadership sees at 8 a.m. Monday</h2></div>
+
+    <div class="grid grid-4 anim-2" style="margin-top:20px">
+      <div class="card stat-card"><div class="v">42</div><div class="l">Total MOCs YTD</div></div>
+      <div class="card stat-card"><div class="v" style="color:var(--blue)">12</div><div class="l">Open</div></div>
+      <div class="card stat-card"><div class="v" style="color:var(--red)">7</div><div class="l">Major</div></div>
+      <div class="card stat-card"><div class="v" style="color:var(--gold)">3</div><div class="l">High Risk</div></div>
+      <div class="card stat-card"><div class="v" style="color:var(--gold)">1</div><div class="l">Overdue Temporary</div></div>
+      <div class="card stat-card"><div class="v" style="color:#9a3412">2</div><div class="l">Expiring ≤ 30 days</div></div>
+      <div class="card stat-card"><div class="v" style="color:#7c3aed">8.2</div><div class="l">Avg Days to Approve</div></div>
+      <div class="card stat-card"><div class="v" style="color:var(--green)">5.3</div><div class="l">Avg Days to Close</div></div>
+    </div>
+
+    <div class="anim-3" style="margin-top:20px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px">
+      <h3 style="margin-bottom:14px">📊 Pipeline by Stage</h3>
+      <div style="display:grid;grid-template-columns:140px 1fr 80px;gap:12px;align-items:center;font-size:13px">
+        <div><strong>Stage 1</strong><div style="color:var(--muted);font-size:11px">Initiate</div></div>
+        <div style="height:14px;background:#f1f5f9;border-radius:6px;overflow:hidden"><div style="width:25%;height:100%;background:linear-gradient(90deg,#3b82f6,#3b82f6cc)"></div></div>
+        <div style="text-align:right"><strong>3</strong> <span style="color:var(--muted);font-size:11px">25%</span></div>
+
+        <div><strong>Stage 2</strong><div style="color:var(--muted);font-size:11px">Classify / Approve</div></div>
+        <div style="height:14px;background:#f1f5f9;border-radius:6px;overflow:hidden"><div style="width:42%;height:100%;background:linear-gradient(90deg,#8b5cf6,#8b5cf6cc)"></div></div>
+        <div style="text-align:right"><strong>5</strong> <span style="color:var(--muted);font-size:11px">42%</span></div>
+
+        <div><strong>Stage 3</strong><div style="color:var(--muted);font-size:11px">Execute</div></div>
+        <div style="height:14px;background:#f1f5f9;border-radius:6px;overflow:hidden"><div style="width:25%;height:100%;background:linear-gradient(90deg,#f59e0b,#f59e0bcc)"></div></div>
+        <div style="text-align:right"><strong>3</strong> <span style="color:var(--muted);font-size:11px">25%</span></div>
+
+        <div><strong>Stage 4</strong><div style="color:var(--muted);font-size:11px">Close / PSSR</div></div>
+        <div style="height:14px;background:#f1f5f9;border-radius:6px;overflow:hidden"><div style="width:8%;height:100%;background:linear-gradient(90deg,#10b981,#10b981cc)"></div></div>
+        <div style="text-align:right"><strong>1</strong> <span style="color:var(--muted);font-size:11px">8%</span></div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Slide 14 / 22</span><span>All numbers updated live — no spreadsheets, no end-of-month gathering</span></div>
+  </section>
+
+  <!-- ====================== SLIDE 15 — ROLES ====================== -->
+  <section class="slide dark">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Access Control</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Roles &amp; permissions</div><h2 style="color:#fff">Five roles. Every action gated.</h2></div>
+
+    <div class="grid grid-4 anim-2" style="margin-top:24px">
+      <div class="card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="ico red" style="background:rgba(220,38,38,.18);color:#fca5a5">👑</div>
+        <strong style="color:#fff">Admin</strong>
+        <p style="color:rgba(255,255,255,.78)">User management, MOC oversight, audit access. Cannot bypass approval steps.</p>
+      </div>
+      <div class="card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="ico green" style="background:rgba(34,197,94,.18);color:#86efac">⚙</div>
+        <strong style="color:#fff">Engineer</strong>
+        <p style="color:rgba(255,255,255,.78)">Initiate &amp; submit MOCs. Edit own drafts. View approval progress.</p>
+      </div>
+      <div class="card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="ico blue" style="background:rgba(59,130,246,.2);color:#93c5fd">✓</div>
+        <strong style="color:#fff">Approver</strong>
+        <p style="color:rgba(255,255,255,.78)">Act on assigned chain steps: Approve, Reject, Delegate. Hold a MOC position.</p>
+      </div>
+      <div class="card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="ico amber" style="background:rgba(245,158,11,.18);color:#fbbf24">👁</div>
+        <strong style="color:#fff">Viewer</strong>
+        <p style="color:rgba(255,255,255,.78)">Read-only across MOCs &amp; KPIs. Auditors, observers, leadership stand-ins.</p>
+      </div>
+    </div>
+
+    <div class="anim-3" style="margin-top:30px;padding:24px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
+      <h3 style="color:#fff;margin-bottom:8px">🛡 Permission examples</h3>
+      <div class="grid grid-3" style="gap:10px;margin-top:12px">
+        <div style="font-size:13px;color:rgba(255,255,255,.75)"><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px">moc:create</code> — initiate a new MOC</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.75)"><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px">moc:update</code> — edit / submit / act on steps</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.75)"><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px">moc:view</code> — read MOCs &amp; KPIs</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.75)"><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px">users:create</code> — admin only</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.75)"><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px">users:deactivate</code> — admin only</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.75)"><code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px">audit:read</code> — admin / auditor</div>
+      </div>
+    </div>
+    <div class="progress"><div style="width:68%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 16 — SECURITY ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Security</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">By design — not an afterthought</div><h2>How we keep the system safe</h2></div>
+
+    <div class="grid grid-2 anim-2" style="margin-top:24px;gap:24px">
+      <div>
+        <div class="feat"><div class="b ico blue">🔐</div><div><strong>JWT authentication</strong><span>Stateless tokens, configurable expiry, signed with a 96-character secret. Tokens stored in client localStorage with secure flag.</span></div></div>
+        <div class="feat"><div class="b ico violet">🧂</div><div><strong>Bcrypt password hashing</strong><span>Salted, cost-factor 10. Plain passwords never written to logs or DB.</span></div></div>
+        <div class="feat"><div class="b ico green">🔒</div><div><strong>HTTPS enforced</strong><span>Let's Encrypt certificate, HSTS header, automatic renewal.</span></div></div>
+        <div class="feat"><div class="b ico amber">🚪</div><div><strong>Per-route permissions</strong><span>Express middleware gates every endpoint. A Viewer cannot POST to /mocs even if they craft the URL.</span></div></div>
+      </div>
+      <div>
+        <div class="feat"><div class="b ico red">📝</div><div><strong>Comprehensive audit log</strong><span>Every create/update/delete on every entity is captured with user ID, IP, old &amp; new values.</span></div></div>
+        <div class="feat"><div class="b ico teal">🛡</div><div><strong>SQL injection blocked</strong><span>Sequelize ORM uses parameterized queries everywhere. No raw concatenation.</span></div></div>
+        <div class="feat"><div class="b ico slate">🚧</div><div><strong>Validation at the edge</strong><span>express-validator checks every input. Bad payloads fail fast with structured errors.</span></div></div>
+        <div class="feat"><div class="b ico blue">📂</div><div><strong>Secrets isolated</strong><span>.env file lives outside public_html. JWT secret &amp; DB password never reach the browser.</span></div></div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Slide 16 / 22</span><span>Pen-test ready · OWASP Top-10 mitigations in place</span></div>
+  </section>
+
+  <!-- ====================== SLIDE 17 — TECH STACK ====================== -->
+  <section class="slide dark">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Tech Stack</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Boring technology — on purpose</div><h2 style="color:#fff">Mature, supported, hire-able.</h2></div>
+
+    <div class="anim-2" style="margin-top:30px">
+      <h3 style="color:#5eead4;margin-bottom:12px">Backend</h3>
+      <div class="stack">
+        <div class="tech node">Node.js 20 LTS</div>
+        <div class="tech exp">Express.js 4</div>
+        <div class="tech seq">Sequelize ORM</div>
+        <div class="tech maria">MariaDB 10</div>
+        <div class="tech jwt">JWT</div>
+        <div class="tech pdf">PDFKit</div>
+      </div>
+    </div>
+
+    <div class="anim-3" style="margin-top:24px">
+      <h3 style="color:#5eead4;margin-bottom:12px">Frontend</h3>
+      <div class="stack">
+        <div class="tech js">Vanilla JavaScript ES2020</div>
+        <div class="tech css">CSS3 / Flexbox / Grid</div>
+        <div class="tech node">Font Awesome</div>
+      </div>
+    </div>
+
+    <div class="anim-4" style="margin-top:24px">
+      <h3 style="color:#5eead4;margin-bottom:12px">Infrastructure</h3>
+      <div class="stack">
+        <div class="tech exp">Linux (DirectAdmin compatible)</div>
+        <div class="tech green" style="background:linear-gradient(135deg,#0e7490,#0891b2)">Nginx reverse proxy</div>
+        <div class="tech blue" style="background:linear-gradient(135deg,#1e40af,#3b82f6)">Let's Encrypt TLS</div>
+        <div class="tech red">Daily mysqldump backup</div>
+      </div>
+    </div>
+
+    <div class="quote anim-5" style="margin-top:30px;background:rgba(94,234,212,.08);border-left-color:#5eead4;color:#fff;font-style:normal;font-size:15px">
+      <strong>No exotic dependencies.</strong> Every piece of this stack has been production-grade for a decade. Any Node developer can pick it up in a day. No vendor lock-in.
+    </div>
+    <div class="progress"><div style="width:77%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 18 — DEPLOYMENT ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Deployment</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Where it runs</div><h2>From a laptop to a data centre — same code.</h2></div>
+
+    <div class="grid grid-3 anim-2" style="margin-top:24px">
+      <div class="card">
+        <div class="ico teal">💻</div>
+        <strong>Local / Offline</strong>
+        <p>Restore the DB dump, run <code>node server.js</code>, open browser. No internet needed for development or training.</p>
+      </div>
+      <div class="card">
+        <div class="ico blue">🌐</div>
+        <strong>Shared hosting (current)</strong>
+        <p>DirectAdmin Node.js app + cPanel MySQL. Live today at <code>mari.proflowenergy.org</code>.</p>
+      </div>
+      <div class="card">
+        <div class="ico green">☁</div>
+        <strong>Cloud-ready</strong>
+        <p>Drop-in deployment to AWS EC2, Azure VM, DigitalOcean droplet, or in-house server. Stateless app + single DB = easy to scale.</p>
+      </div>
+    </div>
+
+    <div class="anim-3" style="margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card" style="background:linear-gradient(135deg,#dbeafe,#dcfce7);border:none">
+        <h3 style="margin-bottom:8px">📦 Offline bundle</h3>
+        <p>A single ZIP file contains: backend code, frontend, full DB dump, deployment guide, seed scripts. Hand it to any sysadmin — they're live in an hour.</p>
+      </div>
+      <div class="card" style="background:linear-gradient(135deg,#fef3c7,#fee2e2);border:none">
+        <h3 style="margin-bottom:8px">🛟 Disaster recovery</h3>
+        <p>Daily DB snapshot + nightly file backup. Restore in &lt; 30 minutes from any backup point. No vendor lock-in, no proprietary file formats.</p>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Slide 18 / 22</span><span>One codebase · multiple deployments · zero rewrites</span></div>
+  </section>
+
+  <!-- ====================== SLIDE 19 — ROADMAP ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Roadmap</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">What's next</div><h2>Where we go after launch</h2></div>
+
+    <div class="grid grid-3 anim-2" style="margin-top:30px">
+      <div class="card">
+        <div class="ribbon" style="background:#dcfce7;color:#166534">PHASE 1 · LIVE</div>
+        <h3 style="margin-top:10px">Core MOC</h3>
+        <p>4-stage lifecycle, hierarchy chain, delegation, reject flow, all 4 stage forms, KPI dashboard, audit report, Annexure-H preview, Minute Sheet PDF.</p>
+      </div>
+      <div class="card">
+        <div class="ribbon" style="background:#fef3c7;color:#92400e">PHASE 2 · NEXT 90 DAYS</div>
+        <h3 style="margin-top:10px">Notifications</h3>
+        <p>Email + in-app alerts when an approval lands. Daily digest for directors. Auto-reminders at 3 / 7 days for stalled MOCs.</p>
+      </div>
+      <div class="card">
+        <div class="ribbon" style="background:#dbeafe;color:#1e40af">PHASE 3 · 6 MONTHS</div>
+        <h3 style="margin-top:10px">Mobile App</h3>
+        <p>iOS / Android wrapper. Approve from a phone with biometric lock. Offline drafting that syncs on reconnect.</p>
+      </div>
+      <div class="card">
+        <div class="ribbon" style="background:#ede9fe;color:#5b21b6">PHASE 4</div>
+        <h3 style="margin-top:10px">Document Linking</h3>
+        <p>Attach P&amp;ID drawings, HAZOP reports, JSAs directly. Version control. Inline preview.</p>
+      </div>
+      <div class="card">
+        <div class="ribbon" style="background:#fee2e2;color:#991b1b">PHASE 5</div>
+        <h3 style="margin-top:10px">Integration</h3>
+        <p>SAP / Maximo connector for work orders. SSO via Active Directory. CMMS-linked PSSR triggers.</p>
+      </div>
+      <div class="card">
+        <div class="ribbon" style="background:#cffafe;color:#0e7490">PHASE 6</div>
+        <h3 style="margin-top:10px">AI Assist</h3>
+        <p>Auto-suggest classification from narrative. Detect similar past MOCs. Risk pattern analysis.</p>
+      </div>
+    </div>
+    <div class="progress"><div style="width:86%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 20 — Q&A ANTICIPATED ====================== -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Anticipated Questions</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Things you may want to ask</div><h2>Common questions, answered</h2></div>
+
+    <div class="grid grid-2 anim-2" style="margin-top:20px;gap:14px">
+      <div class="qa">
+        <q>What if our procedure changes?</q>
+        <p>Position codes and chain definitions are configuration, not core code. A revision can be applied without downtime — usually within a day.</p>
+      </div>
+      <div class="qa">
+        <q>How do auditors get evidence?</q>
+        <p>The Audit Report PDF (date-range filterable) and the per-MOC Minute Sheet provide a complete record. Both are signed by the system clock and tamper-evident.</p>
+      </div>
+      <div class="qa">
+        <q>What if the network goes down?</q>
+        <p>Reads are served from the database. Cached UI assets work offline. Approvers can resume the moment connectivity returns. Unsubmitted drafts never lose data.</p>
+      </div>
+      <div class="qa">
+        <q>Can two approvers act in parallel?</q>
+        <p>Sequential by design — that's MSP-HSE-08. The system enforces order strictly. Parallel review is a deliberate non-feature.</p>
+      </div>
+      <div class="qa">
+        <q>Who owns the data?</q>
+        <p>Mari Energies. The DB lives on Mari-controlled infrastructure. The full schema and dump can be exported any time. No SaaS lock-in.</p>
+      </div>
+      <div class="qa">
+        <q>How fast to onboard a new approver?</q>
+        <p>About 90 seconds: Admin → Add User → set Department, Position, Reports-To. They get their login by email.</p>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Slide 20 / 22</span><span>Detailed answers available on request</span></div>
+  </section>
+
+  <!-- ====================== SLIDE 21 — VALUE / ROI ====================== -->
+  <section class="slide dark">
+    <div class="slide-header">
+      <div class="brandbar"><img src="logo.png"><div class="name">MOC <span>Mari Energies</span></div></div>
+      <div class="badge">Value</div>
+    </div>
+    <div class="anim-1"><div class="eyebrow">Bottom line</div><h2 style="color:#fff">Why this pays for itself.</h2></div>
+
+    <div class="grid grid-4 anim-2" style="margin-top:30px">
+      <div class="card stat-card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="v" style="color:#5eead4">−65%</div>
+        <div class="l" style="color:rgba(255,255,255,.7)">approval cycle time<br>(target)</div>
+      </div>
+      <div class="card stat-card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="v" style="color:#86efac">100%</div>
+        <div class="l" style="color:rgba(255,255,255,.7)">audit traceability</div>
+      </div>
+      <div class="card stat-card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="v" style="color:#fbbf24">0</div>
+        <div class="l" style="color:rgba(255,255,255,.7)">lost paper forms</div>
+      </div>
+      <div class="card stat-card" style="background:rgba(255,255,255,.06);color:#fff;border-color:rgba(255,255,255,.12)">
+        <div class="v" style="color:#c4b5fd">24/7</div>
+        <div class="l" style="color:rgba(255,255,255,.7)">availability</div>
+      </div>
+    </div>
+
+    <div class="anim-3" style="margin-top:30px;padding:24px;border-left:4px solid #22c55e;background:rgba(34,197,94,.08);border-radius:6px">
+      <h3 style="color:#fff;margin-bottom:6px">More than time savings.</h3>
+      <p style="color:rgba(255,255,255,.85);font-size:15px;line-height:1.6">A single avoided incident — a P&amp;ID change that goes through proper review instead of slipping through — pays for the platform many times over. Process safety isn't a cost centre. It's an insurance policy that also makes you faster.</p>
+    </div>
+    <div class="progress"><div style="width:95%"></div></div>
+  </section>
+
+  <!-- ====================== SLIDE 22 — THANK YOU ====================== -->
+  <section class="slide brand">
+    <div class="cover-wrap">
+      <img src="logo.png" class="cover-logo anim-1" style="height:100px">
+      <div class="eyebrow anim-2">Mari Energies · MOC Management System</div>
+      <h1 class="cover-title anim-3" style="font-size:72px">Thank you.</h1>
+      <p class="cover-sub anim-4">Questions? Live demo? Pilot rollout? Let's talk.</p>
+      <div class="anim-5" style="margin-top:30px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+        <span class="tag" style="background:rgba(94,234,212,.15);color:#5eead4;border:1px solid rgba(94,234,212,.3)">🌐 mari.proflowenergy.org</span>
+        <span class="tag" style="background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)">📧 demo on request</span>
+        <span class="tag" style="background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.15)">🔁 offline bundle available</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="prev" title="Previous (←)">‹</button>
+  <button class="num" id="counter">1 / 22</button>
+  <button id="next" title="Next (→ / Space)">›</button>
+</div>
+
+<div class="hint">← / → to navigate · F for fullscreen · ESC to exit · 1–9 jump to slide</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const counter = document.getElementById('counter');
+  let idx = 0;
+
+  function show(i) {
+    idx = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, n) => s.classList.toggle('active', n === idx));
+    counter.textContent = `${idx + 1} / ${slides.length}`;
+  }
+
+  document.getElementById('next').onclick = () => show(idx + 1);
+  document.getElementById('prev').onclick = () => show(idx - 1);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { show(idx + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { show(idx - 1); e.preventDefault(); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+    else if (e.key.toLowerCase() === 'f') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    else if (/^[1-9]$/.test(e.key)) show(parseInt(e.key, 10) - 1);
+  });
+
+  // click anywhere on right half = next, left edge = prev
+  document.addEventListener('click', e => {
+    if (e.target.closest('button, a, select, input, .nav')) return;
+    const x = e.clientX / window.innerWidth;
+    if (x > 0.7) show(idx + 1);
+    else if (x < 0.15) show(idx - 1);
+  });
+
+  show(0);
+</script>
+
+</body>
+</html>
