@@ -12,10 +12,30 @@ const { initSocket } = require('./socket');
 const app = express();
 const server = http.createServer(app);
 
+// ── Allowed origins ──────────────────────────────────────
+// We accept the deployed web origin, local dev, and the schemes used by the
+// Capacitor Android wrapper (the WebView loads under http(s)://localhost or
+// the capacitor:// scheme on iOS). Without this, the Android app can't talk
+// to the API.
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:3000',
+  'https://spark.proflowenergy.org',
+  'http://localhost',
+  'https://localhost',
+  'capacitor://localhost',
+  'ionic://localhost',
+];
+const corsOriginCheck = (origin, callback) => {
+  // Native apps and curl have no Origin header — allow them.
+  if (!origin) return callback(null, true);
+  if (allowedOrigins.includes(origin)) return callback(null, true);
+  return callback(new Error(`CORS blocked: ${origin}`));
+};
+
 // ── Socket.io ─────────────────────────────────────────────
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -28,7 +48,7 @@ connectDB();
 
 // ── Middleware ────────────────────────────────────────────
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: corsOriginCheck,
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));

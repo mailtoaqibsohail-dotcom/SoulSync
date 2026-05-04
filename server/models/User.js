@@ -142,6 +142,17 @@ const userSchema = new mongoose.Schema(
     // Password reset
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+
+    // FCM push tokens for the user's devices (Android wrapper / iOS).
+    // One user may have multiple — phone + tablet etc. The server iterates
+    // over these to send a push when a new message / match arrives.
+    pushTokens: [
+      {
+        token: { type: String, required: true },
+        platform: { type: String, enum: ['android', 'ios', 'web'], default: 'android' },
+        addedAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true }
 );

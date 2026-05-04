@@ -590,4 +590,24 @@ router.post('/report/:id', protect, async (req, res) => {
   }
 });
 
+// Save / refresh an FCM push-notification token for the device. Called
+// from the Capacitor Android wrapper on first launch and after login.
+// We store an array so a single user can have multiple devices.
+router.post('/push-token', protect, async (req, res) => {
+  try {
+    const { token, platform } = req.body;
+    if (!token || typeof token !== 'string') {
+      return res.status(400).json({ message: 'token required' });
+    }
+    await User.updateOne(
+      { _id: req.user._id },
+      { $addToSet: { pushTokens: { token, platform: platform || 'android' } } }
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Push token save error:', err);
+    res.status(500).json({ message: 'Error saving push token' });
+  }
+});
+
 module.exports = router;
