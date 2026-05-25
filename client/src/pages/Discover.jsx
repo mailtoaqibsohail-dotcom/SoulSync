@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { readCache, writeCache } from '../utils/localCache';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FiFilter, FiX, FiRotateCcw, FiMap } from 'react-icons/fi';
+import { FiFilter, FiX, FiRotateCcw } from 'react-icons/fi';
 import { searchCities } from '../utils/pakistanCities';
 import { DEFAULT_AVATAR } from '../utils/defaults';
 import './Discover.css';
@@ -483,18 +483,6 @@ const Discover = () => {
           </div>
         </>
       )}
-
-      {/* Floating map FAB — opens the map view. Privacy is gated server-side:
-          the requester must have privacy.showOnMap enabled, otherwise the
-          map page itself prompts them to opt in. */}
-      <button
-        className="discover-map-fab"
-        onClick={() => navigate('/discover/map')}
-        aria-label="Open map view"
-        title="View on map"
-      >
-        <FiMap size={22} />
-      </button>
 
       {/* Loading / empty / grid */}
       {loading ? (

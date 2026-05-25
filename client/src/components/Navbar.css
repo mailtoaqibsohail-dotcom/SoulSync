@@ -82,15 +82,31 @@
     gap: 6px;
   }
   .navbar__right { display: flex; }
-  .navbar__logout {
-    display: block;
+  .navbar__settings {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     background: transparent;
     color: var(--text-muted);
-    font-size: 0.85rem;
-    padding: 8px 16px;
-    border-radius: 50px;
     border: 1.5px solid var(--border);
+    cursor: pointer;
     transition: all 0.2s;
   }
-  .navbar__logout:hover { border-color: var(--pink); color: var(--pink); }
+  .navbar__settings:hover { border-color: var(--pink); color: var(--pink); }
 }
+
+/* Mobile: keep settings reachable from the top-right of the bottom nav */
+.navbar__settings {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+}
+.navbar__settings:hover { border-color: var(--pink); color: var(--pink); }

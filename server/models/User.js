@@ -108,11 +108,22 @@ const userSchema = new mongoose.Schema(
       default: [],
     },
 
-    // Privacy — every flag here is opt-in (default off). The map feature
-    // exposes approximate (fuzzed) coordinates of users who explicitly
-    // enabled showOnMap; everyone else stays invisible on the map.
-    privacy: {
-      showOnMap: { type: Boolean, default: false },
+    // User settings. Defaults match the "out of the box" experience —
+    // notifications on, online status visible. Users can flip individual
+    // toggles from the Settings page.
+    settings: {
+      // Push notifications master switch. When false, server skips push
+      // sends for this user (messages, matches, sparks all still arrive
+      // in-app, just no FCM ping).
+      notificationsEnabled: { type: Boolean, default: true },
+      // When false, isOnline is hidden from other users' views (their
+      // profile, the discover grid green dot, etc.).
+      showOnlineStatus: { type: Boolean, default: true },
+      // When false, "Last seen" timestamp is hidden from other users.
+      showLastSeen: { type: Boolean, default: true },
+      // When false, the user is opted out of read-receipts on chat
+      // messages (their `read` ticks won't fire on outgoing messages).
+      readReceipts: { type: Boolean, default: true },
     },
 
     // Matching
@@ -212,7 +223,24 @@ userSchema.methods.toPublicProfile = function () {
     hobbies: this.hobbies,
     interestedIn: this.interestedIn,
     dateOfBirth: this.dateOfBirth,
-    privacy: this.privacy ? { showOnMap: !!this.privacy.showOnMap } : { showOnMap: false },
+  };
+};
+
+// Same as toPublicProfile but with self-only fields (email, settings).
+// Used by /auth/me and other self-fetches so the Settings page can render
+// the user's current preferences. Never serialized for other users.
+userSchema.methods.toSelfProfile = function () {
+  return {
+    ...this.toPublicProfile(),
+    email: this.email,
+    phone: this.phone,
+    preferences: this.preferences,
+    settings: {
+      notificationsEnabled: this.settings?.notificationsEnabled ?? true,
+      showOnlineStatus: this.settings?.showOnlineStatus ?? true,
+      showLastSeen: this.settings?.showLastSeen ?? true,
+      readReceipts: this.settings?.readReceipts ?? true,
+    },
   };
 };
 

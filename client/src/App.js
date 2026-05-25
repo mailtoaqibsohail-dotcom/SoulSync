@@ -17,13 +17,13 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword  from './pages/ResetPassword';
 import SetupProfile from './pages/SetupProfile';
 import Discover     from './pages/Discover';
-import MapView      from './pages/MapView';
 import Matches      from './pages/Matches';
 import Inbox        from './pages/Inbox';
 
 import Chat         from './pages/Chat';
 import Search       from './pages/Search';
 import MyProfile    from './pages/MyProfile';
+import Settings     from './pages/Settings';
 import ViewProfile  from './pages/ViewProfile';
 import Call         from './pages/Call';
 import useAutoLocation from './hooks/useAutoLocation';
@@ -68,13 +68,13 @@ const AppRoutes = () => (
       <Route path="/setup-profile" element={<PrivateRoute><SetupProfile /></PrivateRoute>} />
 
       <Route path="/discover"         element={<PrivateRoute><Discover /></PrivateRoute>} />
-      <Route path="/discover/map"     element={<PrivateRoute><MapView /></PrivateRoute>} />
       <Route path="/matches"          element={<PrivateRoute><Matches /></PrivateRoute>} />
       <Route path="/inbox"            element={<PrivateRoute><Inbox /></PrivateRoute>} />
       <Route path="/inbox/:matchId"   element={<PrivateRoute><Inbox /></PrivateRoute>} />
       <Route path="/chat/:matchId"    element={<PrivateRoute><Chat /></PrivateRoute>} />
       <Route path="/search"           element={<PrivateRoute><Search /></PrivateRoute>} />
       <Route path="/profile/me"       element={<PrivateRoute><MyProfile /></PrivateRoute>} />
+      <Route path="/settings"         element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="/profile/:id"      element={<PrivateRoute><ViewProfile /></PrivateRoute>} />
       <Route path="/call/:matchId"    element={<PrivateRoute><Call /></PrivateRoute>} />
 

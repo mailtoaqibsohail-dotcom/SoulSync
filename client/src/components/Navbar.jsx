@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FiHome, FiInbox, FiSearch, FiUser } from 'react-icons/fi';
+import { FiHome, FiInbox, FiSearch, FiUser, FiSettings } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import NotificationBell from './NotificationBell';
@@ -9,14 +9,9 @@ import './Logo.css';
 import './Navbar.css';
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { unreadNotifications, totalUnreadMessages } = useNotifications();
   const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
 
   return (
     <nav className="navbar">
@@ -48,7 +43,14 @@ const Navbar = () => {
 
       <div className="navbar__right">
         <NotificationBell />
-        <button className="navbar__logout" onClick={handleLogout} title="Logout">Sign out</button>
+        <button
+          className="navbar__settings"
+          onClick={() => navigate('/settings')}
+          title="Settings"
+          aria-label="Settings"
+        >
+          <FiSettings size={20} />
+        </button>
       </div>
     </nav>
   );

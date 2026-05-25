@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiCamera, FiEdit2, FiCheck, FiX, FiLogOut, FiUser, FiMapPin, FiHeart, FiSlash, FiTrash2, FiUpload, FiAlertTriangle } from 'react-icons/fi';
+import { FiCamera, FiEdit2, FiCheck, FiX, FiLogOut, FiUser, FiMapPin, FiHeart, FiSlash, FiTrash2, FiUpload, FiAlertTriangle, FiSettings } from 'react-icons/fi';
 import { DEFAULT_AVATAR } from '../utils/defaults';
 import { searchCities } from '../utils/pakistanCities';
 import './MyProfile.css';
@@ -245,6 +245,19 @@ const MyProfile = () => {
 
   return (
     <div className="myprofile-page">
+
+      {/* Quick-access settings gear — visible on every device. Mobile users
+          can't reach the navbar's settings icon (it's desktop-only), so this
+          anchors the entry point. */}
+      <button
+        type="button"
+        className="myprofile-settings-btn"
+        onClick={() => navigate('/settings')}
+        aria-label="Settings"
+        title="Settings"
+      >
+        <FiSettings size={20} />
+      </button>
 
       {/* Cover */}
       <div className="myprofile-cover" onClick={() => coverPhoto && setPhotoModal('cover')} style={{ cursor: coverPhoto ? 'pointer' : 'default' }}>
@@ -578,38 +591,6 @@ const MyProfile = () => {
               <div className="myprofile-info-row"><span className="muted">Max distance</span><strong>{user?.preferences?.distance || 50} km</strong></div>
             </div>
           )}
-        </div>
-
-        <div className="myprofile-divider" />
-
-        {/* Privacy — map visibility toggle. Default is OFF; turning it on
-            both reveals you (with fuzzed coords) AND unlocks viewing the
-            map yourself (mutual-visibility rule, enforced server-side). */}
-        <div className="myprofile-section">
-          <div className="myprofile-section__header">
-            <h3>🗺️ Map privacy</h3>
-          </div>
-          <div className="myprofile-info-rows">
-            <div className="myprofile-info-row" style={{ alignItems: 'flex-start' }}>
-              <div style={{ flex: 1 }}>
-                <strong style={{ display: 'block' }}>Show me on the map</strong>
-                <span className="muted" style={{ fontSize: 12, lineHeight: 1.4 }}>
-                  When on, others can see your approximate location on the
-                  Discover map. Your coordinates are fuzzed by 200-400m, never
-                  exact. You can also see opted-in users on the map.
-                </span>
-              </div>
-              <label className="switch" style={{ marginLeft: 12 }}>
-                <input
-                  type="checkbox"
-                  checked={!!user?.privacy?.showOnMap}
-                  disabled={saving}
-                  onChange={(e) => save({ privacy: { showOnMap: e.target.checked } })}
-                />
-                <span className="slider-toggle" />
-              </label>
-            </div>
-          </div>
         </div>
 
         <div className="myprofile-divider" />
