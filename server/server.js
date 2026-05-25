@@ -12,6 +12,12 @@ const { initSocket } = require('./socket');
 const app = express();
 const server = http.createServer(app);
 
+// Behind LiteSpeed/Passenger — trust X-Forwarded-For so express-rate-limit
+// and req.ip see the real client IP, not the proxy. Without this, the
+// rate-limit validator throws ERR_ERL_UNEXPECTED_X_FORWARDED_FOR and every
+// /api/* request fails before reaching the route handler.
+app.set('trust proxy', 1);
+
 // ── Allowed origins ──────────────────────────────────────
 // We accept the deployed web origin, local dev, and the schemes used by the
 // Capacitor Android wrapper (the WebView loads under http(s)://localhost or
