@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { readCache, writeCache } from '../utils/localCache';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FiFilter, FiX, FiRotateCcw } from 'react-icons/fi';
+import { FiFilter, FiX, FiRotateCcw, FiMap } from 'react-icons/fi';
 import { searchCities } from '../utils/pakistanCities';
 import { DEFAULT_AVATAR } from '../utils/defaults';
 import './Discover.css';
@@ -24,8 +25,10 @@ const DEFAULT_FILTERS = {
 };
 
 const Discover = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Hydrate the deck from cache so the swipe screen paints instantly on
+  // cold app start. Background fetch always overwrites with fresh data.
+  const [users, setUsers] = useState(() => readCache('discover') || []);
+  const [loading, setLoading] = useState(() => !readCache('discover'));
   const [errorMsg, setErrorMsg] = useState('');
   const [relaxed, setRelaxed] = useState(false);
   const [noLocation, setNoLocation] = useState(false);
@@ -151,7 +154,9 @@ const Discover = () => {
   };
 
   const fetchUsers = async (coords, f) => {
-    setLoading(true);
+    // Only show the spinner when we have nothing to display. With cached
+    // users on screen we revalidate silently so the deck doesn't blank out.
+    setLoading((prev) => prev || users.length === 0);
     setErrorMsg('');
     setRelaxed(false);
     setNoLocation(false);
@@ -174,6 +179,7 @@ const Discover = () => {
 
       const { data } = await axios.get('/api/users/discover', { params });
       setUsers(data.users || []);
+      writeCache('discover', data.users || []);
       if (data.relaxed) setRelaxed(true);
       if (data.reason === 'no_location') setNoLocation(true);
     } catch (err) {
@@ -477,6 +483,18 @@ const Discover = () => {
           </div>
         </>
       )}
+
+      {/* Floating map FAB — opens the map view. Privacy is gated server-side:
+          the requester must have privacy.showOnMap enabled, otherwise the
+          map page itself prompts them to opt in. */}
+      <button
+        className="discover-map-fab"
+        onClick={() => navigate('/discover/map')}
+        aria-label="Open map view"
+        title="View on map"
+      >
+        <FiMap size={22} />
+      </button>
 
       {/* Loading / empty / grid */}
       {loading ? (

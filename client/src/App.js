@@ -17,6 +17,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword  from './pages/ResetPassword';
 import SetupProfile from './pages/SetupProfile';
 import Discover     from './pages/Discover';
+import MapView      from './pages/MapView';
 import Matches      from './pages/Matches';
 import Inbox        from './pages/Inbox';
 
@@ -67,6 +68,7 @@ const AppRoutes = () => (
       <Route path="/setup-profile" element={<PrivateRoute><SetupProfile /></PrivateRoute>} />
 
       <Route path="/discover"         element={<PrivateRoute><Discover /></PrivateRoute>} />
+      <Route path="/discover/map"     element={<PrivateRoute><MapView /></PrivateRoute>} />
       <Route path="/matches"          element={<PrivateRoute><Matches /></PrivateRoute>} />
       <Route path="/inbox"            element={<PrivateRoute><Inbox /></PrivateRoute>} />
       <Route path="/inbox/:matchId"   element={<PrivateRoute><Inbox /></PrivateRoute>} />

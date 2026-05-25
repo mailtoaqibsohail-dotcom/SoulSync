@@ -108,6 +108,13 @@ const userSchema = new mongoose.Schema(
       default: [],
     },
 
+    // Privacy — every flag here is opt-in (default off). The map feature
+    // exposes approximate (fuzzed) coordinates of users who explicitly
+    // enabled showOnMap; everyone else stays invisible on the map.
+    privacy: {
+      showOnMap: { type: Boolean, default: false },
+    },
+
     // Matching
     // NOTE: likedUsers / dislikedUsers have been offloaded to the Swipe
     // collection (see models/Swipe.js) to keep User documents small. The
@@ -205,6 +212,7 @@ userSchema.methods.toPublicProfile = function () {
     hobbies: this.hobbies,
     interestedIn: this.interestedIn,
     dateOfBirth: this.dateOfBirth,
+    privacy: this.privacy ? { showOnMap: !!this.privacy.showOnMap } : { showOnMap: false },
   };
 };
 

@@ -240,6 +240,170 @@ router.get('/discover', protect, async (req, res) => {
   }
 });
 
+// ── GET /api/users/map ────────────────────────────────────
+// Returns nearby users who have explicitly opted into map visibility
+// (privacy.showOnMap = true). Coordinates are FUZZED ~200-400m server-side
+// so the response only reveals a neighborhood, never a home address.
+//
+// Mutual visibility rule: the requester must also have showOnMap = true.
+// If they haven't opted in, the route returns 403 — you can only see others
+// on the map if you're willing to be seen yourself.
+router.get('/map', protect, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user._id);
+    if (!currentUser) return res.status(404).json({ message: 'User not found' });
+
+    // Mutual visibility gate — must be opted in to view the map.
+    if (!currentUser.privacy?.showOnMap) {
+      return res.status(403).json({
+        message: 'Enable "Show me on map" in settings to view the map.',
+        reason: 'not_opted_in',
+      });
+    }
+
+    const coords = currentUser.location?.coordinates;
+    const hasStoredCoords =
+      Array.isArray(coords) && coords.length === 2 &&
+      !(coords[0] === 0 && coords[1] === 0);
+
+    const { lng, lat } = req.query;
+    const qLng = parseFloat(lng);
+    const qLat = parseFloat(lat);
+    const hasQueryCoords = !isNaN(qLng) && !isNaN(qLat);
+
+    if (!hasQueryCoords && !hasStoredCoords) {
+      return res.status(400).json({
+        message: 'Location required to view the map.',
+        reason: 'no_location',
+      });
+    }
+
+    const userLng = hasQueryCoords ? qLng : coords[0];
+    const userLat = hasQueryCoords ? qLat : coords[1];
+
+    const prefs = currentUser.preferences || {};
+    const qDistance = parseInt(req.query.distanceKm, 10);
+    const distanceKm = Number.isFinite(qDistance) && qDistance > 0
+      ? qDistance
+      : (prefs.distance || 50);
+    const maxDistance = distanceKm * 1000;
+
+    // Gender preference — same logic as Discover.
+    const genderPref = prefs.showMe || 'everyone';
+    const genderFilter =
+      genderPref === 'everyone' ? {}
+        : genderPref === 'men' ? { gender: 'man' }
+        : genderPref === 'women' ? { gender: 'woman' }
+        : { gender: genderPref };
+
+    // Age preference.
+    const ageRange = prefs.ageRange || {};
+    const minAge = ageRange.min ?? 18;
+    const maxAge = ageRange.max ?? 99;
+    const today = new Date();
+    const minDob = new Date(today.getFullYear() - maxAge, today.getMonth(), today.getDate());
+    const maxDob = new Date(today.getFullYear() - minAge, today.getMonth(), today.getDate());
+
+    // Exclude self, blocks (both directions), already-swiped.
+    const [blockedMe, mySwipes] = await Promise.all([
+      User.find({ blockedUsers: currentUser._id }).select('_id').lean(),
+      Swipe.find({ from: currentUser._id }).select('to').lean(),
+    ]);
+    const excludeIds = [
+      currentUser._id,
+      ...(currentUser.blockedUsers || []),
+      ...blockedMe.map((u) => u._id),
+      ...mySwipes.map((s) => s.to),
+    ];
+
+    // Activity gate — same 3h rule as Discover.
+    const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
+    const activeSince = new Date(Date.now() - THREE_HOURS_MS);
+
+    const raw = await User.aggregate([
+      {
+        $geoNear: {
+          near: { type: 'Point', coordinates: [userLng, userLat] },
+          distanceField: 'distance',
+          maxDistance,
+          spherical: true,
+          query: {
+            _id: { $nin: excludeIds },
+            isActive: true,
+            emailVerificationPending: { $ne: true },
+            'privacy.showOnMap': true,
+            $or: [{ isOnline: true }, { lastSeen: { $gte: activeSince } }],
+            dateOfBirth: { $gte: minDob, $lte: maxDob },
+            ...genderFilter,
+          },
+        },
+      },
+      { $limit: 200 },
+      {
+        $project: {
+          name: 1,
+          username: 1,
+          profilePhoto: 1,
+          photos: 1,
+          isOnline: 1,
+          isVerified: 1,
+          gender: 1,
+          'location.coordinates': 1,
+          distance: { $round: [{ $divide: ['$distance', 1000] }, 1] },
+          age: {
+            $dateDiff: {
+              startDate: '$dateOfBirth',
+              endDate: '$$NOW',
+              unit: 'year',
+            },
+          },
+        },
+      },
+    ]);
+
+    // ── Coordinate fuzzing ────────────────────────────────
+    // Offset each user's coords by a per-user-per-day deterministic random
+    // value in a ~200-400m radius. Deterministic-per-day so the marker doesn't
+    // jitter every refresh (would look broken); per-day so the offset rotates
+    // and can't be averaged out by repeated requests over time.
+    const dayKey = Math.floor(Date.now() / (24 * 60 * 60 * 1000));
+    const hash = (str) => {
+      let h = 2166136261;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return (h >>> 0) / 0xffffffff; // 0..1
+    };
+    const fuzz = (uid, coordPair) => {
+      if (!Array.isArray(coordPair) || coordPair.length !== 2) return coordPair;
+      const [lng, lat] = coordPair;
+      const seed = `${uid}-${dayKey}`;
+      const r1 = hash(seed + 'a');
+      const r2 = hash(seed + 'b');
+      // Radius 200-400m, random bearing
+      const radiusM = 200 + r1 * 200;
+      const bearing = r2 * 2 * Math.PI;
+      const dLat = (radiusM * Math.cos(bearing)) / 111320;
+      const dLng = (radiusM * Math.sin(bearing)) /
+        (111320 * Math.cos((lat * Math.PI) / 180) || 1);
+      return [lng + dLng, lat + dLat];
+    };
+
+    const users = raw.map((u) => ({
+      ...u,
+      location: {
+        coordinates: fuzz(String(u._id), u.location?.coordinates),
+      },
+    }));
+
+    return res.json({ success: true, users, distanceKm });
+  } catch (err) {
+    console.error('Map error:', err);
+    res.status(500).json({ message: 'Error loading map' });
+  }
+});
+
 // ── GET /api/users/search ─────────────────────────────────
 // Nearby users (sorted by distance) with optional username filter.
 // Email/phone filters removed — Grindr-style app shouldn't expose those.
@@ -352,7 +516,7 @@ router.get('/:id', protect, async (req, res) => {
 // ── PATCH /api/users/profile ──────────────────────────────
 router.patch('/profile', protect, async (req, res) => {
   try {
-    const allowedFields = ['name', 'bio', 'gender', 'interestedIn', 'dateOfBirth', 'preferences', 'profilePhoto', 'coverPhoto'];
+    const allowedFields = ['name', 'bio', 'gender', 'interestedIn', 'dateOfBirth', 'preferences', 'profilePhoto', 'coverPhoto', 'privacy'];
     const updates = {};
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];

@@ -1,0 +1,2 @@
+"use strict";(globalThis.webpackChunkdating_app_client=globalThis.webpackChunkdating_app_client||[]).push([[484],{484(a,s,e){e.d(s,{SplashScreenWeb:()=>c});var n=e(403);class c extends n.E_{async show(a){}async hide(a){}}}}]);
+//# sourceMappingURL=484.ef43715c.chunk.js.map
