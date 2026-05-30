@@ -19,6 +19,7 @@ import {
   FileText,
   BookOpen,
   Receipt,
+  KeyRound,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -65,6 +66,7 @@ const CLIENT_NAV: NavItem[] = [
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/reports", label: "Reports", icon: FileText },
   { href: "/brand", label: "Brand Guidelines", icon: BookOpen },
+  { href: "/connections", label: "Connections", icon: KeyRound },
   { href: "/assets", label: "My Assets", icon: FolderOpen },
   { href: "/billing", label: "Billing", icon: Receipt },
   { href: "/settings", label: "Settings", icon: Settings },
