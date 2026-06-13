@@ -30,8 +30,11 @@ const AdminLogin = () => {
   return (
     <div className="admin-login-page">
       <div className="admin-login-card">
-        <div className="admin-brand admin-brand-lg">Spark <span>Admin</span></div>
-        <p className="admin-login-sub">Sign in to the control panel</p>
+        <div className="admin-brand admin-brand-lg">
+          <img src="/logo.png" alt="" className="admin-brand-logo-lg" />
+          <span>Spark <span className="admin-brand-accent">Match Making</span></span>
+        </div>
+        <p className="admin-login-sub">Admin control panel</p>
 
         {error && <div className="admin-error">{error}</div>}
 

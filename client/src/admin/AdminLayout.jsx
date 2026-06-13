@@ -14,7 +14,10 @@ const AdminLayout = ({ children }) => {
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
-        <div className="admin-brand">Spark <span>Admin</span></div>
+        <div className="admin-brand">
+          <img src="/logo.png" alt="" className="admin-brand-logo" />
+          <span>Spark <span className="admin-brand-accent">Match Making</span></span>
+        </div>
         <nav className="admin-nav">
           <NavLink to="/admin" end className={({ isActive }) => (isActive ? 'active' : '')}>Dashboard</NavLink>
           <NavLink to="/admin/users" className={({ isActive }) => (isActive ? 'active' : '')}>Users</NavLink>

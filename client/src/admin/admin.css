@@ -8,9 +8,11 @@
   width: 220px; flex-shrink: 0; background: var(--bg-card, #1a1a1a);
   border-right: 1px solid var(--border, #2e2e2e); display: flex; flex-direction: column; padding: 20px 0;
 }
-.admin-brand { font-size: 20px; font-weight: 800; padding: 0 20px 20px; }
-.admin-brand span { background: var(--gradient, linear-gradient(135deg,#fd5068,#8a05be)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-.admin-brand-lg { font-size: 28px; text-align: center; padding: 0 0 8px; }
+.admin-brand { font-size: 18px; font-weight: 800; padding: 0 20px 20px; display: flex; align-items: center; gap: 10px; line-height: 1.15; }
+.admin-brand-accent { background: var(--gradient, linear-gradient(135deg,#fd5068,#8a05be)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.admin-brand-logo { width: 30px; height: 30px; border-radius: 7px; object-fit: cover; flex-shrink: 0; }
+.admin-brand-lg { font-size: 24px; flex-direction: column; text-align: center; gap: 10px; padding: 0 0 8px; justify-content: center; }
+.admin-brand-logo-lg { width: 56px; height: 56px; border-radius: 14px; object-fit: cover; }
 .admin-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 12px; flex: 1; }
 .admin-nav a {
   padding: 10px 12px; border-radius: 8px; color: var(--text-muted, #999);
