@@ -9,6 +9,8 @@ import AdminUsers from './pages/AdminUsers';
 import AdminUserDetail from './pages/AdminUserDetail';
 import AdminReports from './pages/AdminReports';
 import AdminAudit from './pages/AdminAudit';
+import AdminRevenue from './pages/AdminRevenue';
+import AdminSystem from './pages/AdminSystem';
 import './admin.css';
 
 // Self-contained admin app. Rendered only for /admin/* paths (see App.js),
@@ -26,6 +28,8 @@ const AdminApp = () => (
       <Route path="/admin/users" element={<Protected><AdminUsers /></Protected>} />
       <Route path="/admin/users/:id" element={<Protected><AdminUserDetail /></Protected>} />
       <Route path="/admin/reports" element={<Protected><AdminReports /></Protected>} />
+      <Route path="/admin/revenue" element={<Protected><AdminRevenue /></Protected>} />
+      <Route path="/admin/system" element={<Protected><AdminSystem /></Protected>} />
       <Route path="/admin/audit" element={<Protected><AdminAudit /></Protected>} />
       <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
     </Routes>

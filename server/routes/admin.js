@@ -9,6 +9,7 @@ const Message = require('../models/Message');
 const Swipe = require('../models/Swipe');
 const Report = require('../models/Report');
 const AdminAction = require('../models/AdminAction');
+const Setting = require('../models/Setting');
 const { requireAdmin } = require('../middleware/adminAuth');
 const { deleteUserCascade } = require('../utils/deleteUser');
 
@@ -44,6 +45,13 @@ async function logAction(req, { action, targetType = 'user', targetId, targetLab
 }
 
 const label = (u) => (u ? `${u.name} (@${u.username})` : 'unknown');
+
+// Singleton settings doc — created on first read.
+async function getSettings() {
+  let s = await Setting.findOne({ key: 'global' });
+  if (!s) s = await Setting.create({ key: 'global' });
+  return s;
+}
 
 // ══════════════════════════════════════════════════════════
 //  AUTH (public)
@@ -560,6 +568,153 @@ router.get('/audit', async (req, res) => {
   } catch (err) {
     console.error('Admin audit error:', err);
     res.status(500).json({ message: 'Failed to load audit log' });
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+//  SETTINGS  (Phase 4 — monetization config, blank + editable)
+// ══════════════════════════════════════════════════════════
+
+router.get('/settings', async (req, res) => {
+  try {
+    const s = await getSettings();
+    res.json({ settings: s });
+  } catch (err) {
+    console.error('Admin settings get error:', err);
+    res.status(500).json({ message: 'Failed to load settings' });
+  }
+});
+
+router.patch('/settings', async (req, res) => {
+  try {
+    const s = await getSettings();
+    const b = req.body || {};
+    if (b.payment && typeof b.payment === 'object') {
+      const p = b.payment;
+      if (p.provider !== undefined) s.payment.provider = String(p.provider).slice(0, 60);
+      if (p.checkoutConfig !== undefined) s.payment.checkoutConfig = String(p.checkoutConfig).slice(0, 2000);
+      if (p.priceMonthly !== undefined) s.payment.priceMonthly = p.priceMonthly === '' || p.priceMonthly === null ? null : Number(p.priceMonthly);
+      if (p.currency !== undefined) s.payment.currency = String(p.currency).slice(0, 8) || 'USD';
+      if (p.enabled !== undefined) s.payment.enabled = Boolean(p.enabled);
+    }
+    if (Array.isArray(b.premiumFeatures)) s.premiumFeatures = b.premiumFeatures.map((f) => String(f).slice(0, 60)).filter(Boolean);
+    if (b.email && typeof b.email === 'object' && b.email.providerApiKey !== undefined) {
+      s.email.providerApiKey = String(b.email.providerApiKey).slice(0, 200);
+    }
+    s.updatedByEmail = req.admin.email;
+    await s.save();
+    await logAction(req, { action: 'edit_settings', targetType: 'settings', targetLabel: 'app settings' });
+    res.json({ success: true, settings: s });
+  } catch (err) {
+    console.error('Admin settings update error:', err);
+    res.status(500).json({ message: 'Failed to update settings' });
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+//  REVENUE  (Phase 4 — derived from plan data + configured price)
+// ══════════════════════════════════════════════════════════
+
+router.get('/revenue', async (req, res) => {
+  try {
+    const s = await getSettings();
+    const price = s.payment.priceMonthly;
+    const now = new Date();
+    const in30 = new Date(Date.now() + 30 * 864e5);
+    const ago30 = new Date(Date.now() - 30 * 864e5);
+
+    const [total, premiumTotal, activePremium, lapsed, expiringSoon, newPremium30d] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ plan: 'premium' }),
+      User.countDocuments({ plan: 'premium', $or: [{ planExpiresAt: null }, { planExpiresAt: { $gt: now } }] }),
+      User.countDocuments({ plan: 'premium', planExpiresAt: { $ne: null, $lt: now } }),
+      User.countDocuments({ plan: 'premium', planExpiresAt: { $ne: null, $gte: now, $lte: in30 } }),
+      User.countDocuments({ premiumSince: { $ne: null, $gte: ago30 } }),
+    ]);
+
+    res.json({
+      pricing: { priceMonthly: price, currency: s.payment.currency, enabled: s.payment.enabled, provider: s.payment.provider },
+      mrr: price != null ? +(price * activePremium).toFixed(2) : null,
+      arr: price != null ? +(price * activePremium * 12).toFixed(2) : null,
+      counts: { total, premiumTotal, activePremium, lapsed, expiringSoon, newPremium30d, free: total - premiumTotal },
+      conversionRate: total ? +((premiumTotal / total) * 100).toFixed(1) : 0,
+    });
+  } catch (err) {
+    console.error('Admin revenue error:', err);
+    res.status(500).json({ message: 'Failed to load revenue' });
+  }
+});
+
+// ══════════════════════════════════════════════════════════
+//  SYSTEM HEALTH  (Phase 5 — ops)
+// ══════════════════════════════════════════════════════════
+
+router.get('/health', async (req, res) => {
+  try {
+    const mem = process.memoryUsage();
+
+    // DB connection stats — the Atlas-tier cap signal (M0 ≈ 500 connections).
+    let db = { state: mongoose.connection.readyState, version: null, connections: null };
+    try {
+      const st = await mongoose.connection.db.admin().serverStatus();
+      db.version = st.version;
+      db.connections = st.connections; // { current, available, totalCreated }
+    } catch (e) { db.error = 'serverStatus unavailable'; }
+
+    // Push reach
+    const [total, notifOn, withTokens, byPlatform] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ 'settings.notificationsEnabled': true }),
+      User.countDocuments({ 'pushTokens.0': { $exists: true } }),
+      User.aggregate([
+        { $unwind: '$pushTokens' },
+        { $group: { _id: '$pushTokens.platform', count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    // Email config (non-secret bits from env) + optional live Brevo usage.
+    const s = await getSettings();
+    const email = {
+      smtpHost: process.env.SMTP_HOST || '',
+      from: process.env.MAIL_FROM || '',
+      brevoConfigured: Boolean(s.email.providerApiKey),
+      usage: null,
+    };
+    if (s.email.providerApiKey) {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 4000);
+        const r = await fetch('https://api.brevo.com/v3/account', {
+          headers: { 'api-key': s.email.providerApiKey, accept: 'application/json' },
+          signal: ctrl.signal,
+        });
+        clearTimeout(t);
+        if (r.ok) {
+          const acc = await r.json();
+          email.usage = { plan: acc.plan, email: acc.email };
+        }
+      } catch (e) { email.usage = null; }
+    }
+
+    res.json({
+      server: {
+        uptimeSeconds: Math.round(process.uptime()),
+        node: process.version,
+        memoryMB: { rss: Math.round(mem.rss / 1048576), heapUsed: Math.round(mem.heapUsed / 1048576) },
+        env: process.env.NODE_ENV || 'development',
+      },
+      db,
+      push: {
+        total,
+        notificationsOn: notifOn,
+        withDeviceTokens: withTokens,
+        byPlatform: byPlatform.map((p) => ({ platform: p._id || 'unknown', count: p.count })),
+      },
+      email,
+    });
+  } catch (err) {
+    console.error('Admin health error:', err);
+    res.status(500).json({ message: 'Failed to load health' });
   }
 });
 
