@@ -19,6 +19,7 @@ const AdminLayout = ({ children }) => {
           <NavLink to="/admin" end className={({ isActive }) => (isActive ? 'active' : '')}>Dashboard</NavLink>
           <NavLink to="/admin/users" className={({ isActive }) => (isActive ? 'active' : '')}>Users</NavLink>
           <NavLink to="/admin/reports" className={({ isActive }) => (isActive ? 'active' : '')}>Reports</NavLink>
+          <NavLink to="/admin/audit" className={({ isActive }) => (isActive ? 'active' : '')}>Audit log</NavLink>
         </nav>
         <div className="admin-sidebar-footer">
           <div className="admin-whoami">{admin?.email}</div>

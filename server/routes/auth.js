@@ -348,6 +348,8 @@ router.post(
 
       user.isOnline = true;
       user.lastSeen = new Date();
+      user.lastLoginAt = new Date();
+      user.lastLoginIp = req.ip || '';
       await user.save({ validateBeforeSave: false });
 
       sendToken(user, 200, res);

@@ -153,6 +153,22 @@ const userSchema = new mongoose.Schema(
     planExpiresAt: { type: Date, default: null }, // null = no expiry
     premiumSince: { type: Date, default: null },
 
+    // Admin / moderation (set from the admin panel)
+    banReason: { type: String, default: '' },
+    bannedAt: { type: Date, default: null },
+    bannedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', default: null },
+    adminNotes: [
+      {
+        text: { type: String, maxlength: 1000 },
+        by: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+        byName: { type: String, default: '' },
+        at: { type: Date, default: Date.now },
+      },
+    ],
+    // Last-login telemetry for admin investigation (dup/fake-account detection)
+    lastLoginIp: { type: String, default: '' },
+    lastLoginAt: { type: Date, default: null },
+
     // Status
     isOnline: { type: Boolean, default: false },
     lastSeen: { type: Date, default: Date.now },

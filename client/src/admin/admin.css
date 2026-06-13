@@ -120,3 +120,38 @@
 .admin-modal { background: var(--bg-card, #1a1a1a); border: 1px solid var(--border, #2e2e2e); border-radius: 14px; padding: 24px; max-width: 420px; width: 100%; }
 .admin-modal h3 { margin: 0 0 10px; }
 .admin-modal p { color: var(--text-muted, #999); font-size: 14px; line-height: 1.5; margin: 0 0 18px; }
+.admin-modal-wide { max-width: 640px; max-height: 85vh; overflow-y: auto; }
+
+/* ── Phase 1: stat sub, bars, sparkline, two-col ── */
+.admin-stat-sub { font-size: 11px; color: var(--text-muted, #777); margin-top: 3px; }
+.admin-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 820px) { .admin-two-col { grid-template-columns: 1fr; } }
+
+.admin-bars { display: flex; flex-direction: column; gap: 8px; }
+.admin-bar-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.admin-bar-label { width: 90px; flex-shrink: 0; color: var(--text-muted, #999); }
+.admin-bar-track { flex: 1; height: 10px; background: var(--bg-input, #242424); border-radius: 6px; overflow: hidden; }
+.admin-bar-fill { height: 100%; border-radius: 6px; transition: width .3s; min-width: 2px; }
+.admin-bar-count { width: 80px; flex-shrink: 0; text-align: right; color: var(--text, #fff); }
+
+.admin-spark { display: flex; align-items: flex-end; gap: 3px; height: 80px; }
+.admin-spark-bar { flex: 1; background: var(--gradient, linear-gradient(135deg,#fd5068,#8a05be)); border-radius: 2px 2px 0 0; min-height: 3px; }
+
+/* ── Phase 2: bulk bar, notes, report detail ── */
+.admin-bulkbar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 12px; background: var(--bg-card, #1a1a1a); border: 1px solid var(--pink, #fd5068); border-radius: 10px; font-size: 14px; }
+.admin-note { background: var(--bg-input, #242424); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 14px; }
+.admin-report-meta { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+.admin-report-details { background: var(--bg-input, #242424); border-radius: 8px; padding: 10px 12px; font-style: italic; font-size: 14px; }
+.admin-report-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
+.admin-msg-list { max-height: 200px; overflow-y: auto; }
+.admin-msg { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--border, #2e2e2e); font-size: 13px; }
+.admin-msg > span:nth-child(2) { flex: 1; }
+
+/* ── Photos / candidates ── */
+.admin-photo-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.admin-photo-thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; }
+.admin-photo-wrap { position: relative; }
+.admin-photo-x { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--pink, #fd5068); color: #fff; cursor: pointer; font-size: 14px; line-height: 1; }
+.admin-photo-x:disabled { opacity: .5; }
+.admin-cand { width: 90px; text-align: center; }
+.admin-cand-name { font-size: 12px; margin-top: 4px; }
