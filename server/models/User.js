@@ -142,6 +142,17 @@ const userSchema = new mongoose.Schema(
       at: { type: Date, default: Date.now },
     }],
 
+    // Subscription / paid features. Foundation only — payment integration and
+    // feature-locking come later. `plan` drives the `isPremium` virtual; admins
+    // can set these from the admin panel.
+    plan: {
+      type: String,
+      enum: ['free', 'premium'],
+      default: 'free',
+    },
+    planExpiresAt: { type: Date, default: null }, // null = no expiry
+    premiumSince: { type: Date, default: null },
+
     // Status
     isOnline: { type: Boolean, default: false },
     lastSeen: { type: Date, default: Date.now },
@@ -180,6 +191,7 @@ userSchema.index({ location: '2dsphere' }); // required for geospatial queries
 userSchema.index({ username: 1 }, { unique: true });
 userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ phone: 1 }, { unique: true, sparse: true });
+userSchema.index({ plan: 1 }); // admin plan-breakdown stats
 
 // ── Virtual: age ─────────────────────────────────────────
 userSchema.virtual('age').get(function () {
@@ -190,6 +202,15 @@ userSchema.virtual('age').get(function () {
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
   return age;
+});
+
+// ── Virtual: isPremium ───────────────────────────────────
+// True when on a paid plan that hasn't expired. Single source of truth for
+// future feature-gating ("if (user.isPremium) ...").
+userSchema.virtual('isPremium').get(function () {
+  if (this.plan === 'free') return false;
+  if (!this.planExpiresAt) return true;
+  return this.planExpiresAt > new Date();
 });
 
 // ── Pre-save: hash password ───────────────────────────────
@@ -234,6 +255,9 @@ userSchema.methods.toSelfProfile = function () {
     ...this.toPublicProfile(),
     email: this.email,
     phone: this.phone,
+    plan: this.plan,
+    isPremium: this.isPremium,
+    planExpiresAt: this.planExpiresAt,
     preferences: this.preferences,
     settings: {
       notificationsEnabled: this.settings?.notificationsEnabled ?? true,

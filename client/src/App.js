@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import AdminApp from './admin/AdminApp';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -84,17 +85,30 @@ const AppRoutes = () => (
   </Layout>
 );
 
+// The dating-app user experience — all the user providers live here.
+const UserApp = () => (
+  <AuthProvider>
+    <SocketProvider>
+      <NotificationProvider>
+        <ChatPopupProvider>
+          <AppRoutes />
+        </ChatPopupProvider>
+      </NotificationProvider>
+    </SocketProvider>
+  </AuthProvider>
+);
+
+// Branch at the very top: /admin/* renders the isolated admin app (its own
+// provider + token), everything else renders the user app. Switching between
+// them remounts cleanly — the two trees never share auth state or axios config.
+const Root = () => {
+  const { pathname } = useLocation();
+  return pathname.startsWith('/admin') ? <AdminApp /> : <UserApp />;
+};
+
 const App = () => (
   <BrowserRouter>
-    <AuthProvider>
-      <SocketProvider>
-        <NotificationProvider>
-          <ChatPopupProvider>
-            <AppRoutes />
-          </ChatPopupProvider>
-        </NotificationProvider>
-      </SocketProvider>
-    </AuthProvider>
+    <Root />
   </BrowserRouter>
 );
 

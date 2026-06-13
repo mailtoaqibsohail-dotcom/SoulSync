@@ -9,6 +9,7 @@ const Swipe = require('../models/Swipe');
 const Report = require('../models/Report');
 const { protect } = require('../middleware/auth');
 const { sendOtpEmail, sendPasswordResetEmail, generateOtp } = require('../utils/mailer');
+const { deleteUserCascade } = require('../utils/deleteUser');
 
 // ── Helper: sign JWT ──────────────────────────────────────
 const signToken = (id) =>
@@ -470,30 +471,7 @@ router.delete(
         }
       }
 
-      const uid = user._id;
-
-      // Cascade delete
-      await Promise.all([
-        Message.deleteMany({ $or: [{ sender: uid }, { receiver: uid }] }),
-        Match.deleteMany({ users: uid }),
-        Swipe.deleteMany({ $or: [{ from: uid }, { to: uid }] }),
-        Report.deleteMany({ $or: [{ reporter: uid }, { reported: uid }] }),
-        // Remove me from other users' legacy arrays
-        User.updateMany(
-          {},
-          {
-            $pull: {
-              likedUsers: uid,
-              dislikedUsers: uid,
-              blockedUsers: uid,
-              matches: uid,
-              'sparksReceived': { from: uid },
-            },
-          }
-        ),
-      ]);
-
-      await User.deleteOne({ _id: uid });
+      await deleteUserCascade(user._id);
 
       res.json({ success: true, message: 'Account deleted' });
     } catch (err) {
