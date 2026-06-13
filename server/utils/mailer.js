@@ -4,8 +4,9 @@
 // Env vars required in production:
 //   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM
 //
-// On InterServer shared hosting you can use the mailbox created in DirectAdmin,
-// e.g. host: mail.proflowenergy.org, port: 587, secure: false.
+// Production sends via the Brevo SMTP relay (smtp-relay.brevo.com:587). The
+// FROM domain (sparkdating.club) must be authenticated in Brevo (SPF/DKIM) or
+// sends are rejected.
 
 const nodemailer = require('nodemailer');
 
@@ -49,7 +50,7 @@ const getTransporter = () => {
   return transporter;
 };
 
-const FROM = process.env.MAIL_FROM || 'Spark <no-reply@proflowenergy.org>';
+const FROM = process.env.MAIL_FROM || 'Spark Match Making <no-reply@sparkdating.club>';
 
 const sendMail = async ({ to, subject, text, html }) => {
   const t = getTransporter();
@@ -69,7 +70,7 @@ const sendOtpEmail = async ({ to, name, code }) => {
     `— The Spark team`;
   const html = `
     <div style="font-family: -apple-system, Segoe UI, sans-serif; max-width:480px; margin:auto; padding:32px; background:#0d0d0d; color:#fff; border-radius:12px;">
-      <h1 style="color:#fd5068; margin:0 0 16px;">Spark</h1>
+      <h1 style="color:#fd5068; margin:0 0 16px;">Spark Match Making</h1>
       <p>Hi ${name || 'there'},</p>
       <p>Your verification code is:</p>
       <div style="font-size:32px; letter-spacing:8px; font-weight:700; background:#1a1a1a; padding:16px 24px; border-radius:8px; text-align:center; margin:24px 0;">
@@ -89,7 +90,7 @@ const sendPasswordResetEmail = async ({ to, name, code }) => {
     `— The Spark team`;
   const html = `
     <div style="font-family: -apple-system, Segoe UI, sans-serif; max-width:480px; margin:auto; padding:32px; background:#0d0d0d; color:#fff; border-radius:12px;">
-      <h1 style="color:#fd5068; margin:0 0 16px;">Spark</h1>
+      <h1 style="color:#fd5068; margin:0 0 16px;">Spark Match Making</h1>
       <p>Hi ${name || 'there'},</p>
       <p>Use this code to reset your password:</p>
       <div style="font-size:32px; letter-spacing:8px; font-weight:700; background:#1a1a1a; padding:16px 24px; border-radius:8px; text-align:center; margin:24px 0;">

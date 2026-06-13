@@ -118,7 +118,8 @@ ssh root@69.164.242.176 '
 
 ## 8. Email (important context)
 - Outbound email **cannot use the VPS's local mail server** — the VPS blocks outbound port 25, so `mail.proflowenergy.org` can't deliver externally.
-- Spark now sends via **Brevo** (SMTP relay): `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_PORT=587`, `SMTP_USER=<brevo login>`, `SMTP_PASS=<brevo SMTP key>`, `MAIL_FROM="Spark <no-reply@proflowenergy.org>"`. The domain `proflowenergy.org` is DKIM-authenticated in Brevo, so mail is inbox-grade.
+- Spark sends via **Brevo** (SMTP relay): `SMTP_HOST=smtp-relay.brevo.com`, `SMTP_PORT=587`, `SMTP_USER=<brevo login>`, `SMTP_PASS=<brevo SMTP key>`.
+- **From address:** target is `MAIL_FROM="Spark Match Making <no-reply@sparkdating.club>"`. **Requires `sparkdating.club` to be authenticated in Brevo (SPF + DKIM)** — add the DKIM/SPF/verification records Brevo provides to GoDaddy DNS and verify the domain there, OR Brevo rejects the send. Until that's done, keep the old verified sender `no-reply@proflowenergy.org` (proflowenergy.org is already DKIM-authenticated in Brevo).
 - `utils/mailer.js` sets `tls: { rejectUnauthorized: SMTP_REJECT_UNAUTHORIZED === 'true' }` (default false).
 - Brevo free tier = 300 emails/day, **shared** across all ProFlow apps on this server.
 
