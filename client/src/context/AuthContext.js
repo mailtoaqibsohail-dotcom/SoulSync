@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { readCache, writeCache, clearCache } from '../utils/localCache';
+import { flushPendingPushToken } from '../native/capacitorBootstrap';
 
 const AuthContext = createContext(null);
 
@@ -7,9 +9,18 @@ const AuthContext = createContext(null);
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  // Hydrate from cache synchronously so the app paints with the user
+  // already "signed in" — no spinner flash on cold start.
+  const [user, setUser] = useState(() => readCache('me'));
   const [token, setToken] = useState(() => localStorage.getItem('datingapp_token'));
-  const [loading, setLoading] = useState(true);
+  // If we have a token AND a cached user, we render instantly and revalidate
+  // silently in the background. Only show the global loading screen if we
+  // genuinely have no idea who the user is yet.
+  const [loading, setLoading] = useState(() => {
+    const t = localStorage.getItem('datingapp_token');
+    const cached = readCache('me');
+    return Boolean(t) && !cached;
+  });
 
   // Attach token to every request
   useEffect(() => {
@@ -20,15 +31,22 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Load user on mount
+  // Load user on mount. If we already hydrated `user` from cache, this runs
+  // silently in the background and overwrites with the fresh server copy.
   useEffect(() => {
     const loadUser = async () => {
       if (!token) { setLoading(false); return; }
       try {
         const { data } = await axios.get('/api/auth/me');
         setUser(data.user);
+        writeCache('me', data.user);
+        // Now that we're authenticated, flush any FCM token that was
+        // captured before login (push registration runs on app start,
+        // before the user has signed in).
+        flushPendingPushToken().catch(() => {});
       } catch {
         localStorage.removeItem('datingapp_token');
+        clearCache(); // wipe any stale cached data on auth failure
         setToken(null);
       } finally {
         setLoading(false);
@@ -45,6 +63,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('datingapp_token', data.token);
     setToken(data.token);
     setUser(data.user);
+    writeCache('me', data.user);
     return data;
   }, []);
 
@@ -98,12 +117,17 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     try { await axios.post('/api/auth/logout'); } catch {}
     localStorage.removeItem('datingapp_token');
+    clearCache(); // drop all cached responses so next user starts clean
     setToken(null);
     setUser(null);
   }, []);
 
   const updateUser = useCallback((updates) => {
-    setUser((prev) => ({ ...prev, ...updates }));
+    setUser((prev) => {
+      const next = { ...prev, ...updates };
+      writeCache('me', next);
+      return next;
+    });
   }, []);
 
   return (

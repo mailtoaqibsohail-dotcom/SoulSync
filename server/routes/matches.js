@@ -6,6 +6,7 @@ const Message = require('../models/Message');
 const Swipe = require('../models/Swipe');
 const { protect } = require('../middleware/auth');
 const { uploadMedia, cloudinary } = require('../config/cloudinary');
+const { pushNewMatch } = require('../utils/push');
 
 // ── POST /api/matches/like/:userId ────────────────────────
 router.post('/like/:userId', protect, async (req, res) => {
@@ -55,6 +56,12 @@ router.post('/like/:userId', protect, async (req, res) => {
         matchId: match._id,
         user: req.user.toPublicProfile ? req.user.toPublicProfile() : req.user,
       });
+
+      // Push notification — the "It's a match!" banner.
+      pushNewMatch(targetId.toString(), {
+        otherName: req.user.name,
+        otherUserId: currentUserId.toString(),
+      }).catch((e) => console.warn('[push] match failed:', e?.message));
 
       return res.json({ success: true, isMatch: true, matchId: match._id });
     }
@@ -127,6 +134,11 @@ router.post('/start/:userId', protect, async (req, res) => {
         matchId: match._id.toString(),
         user: req.user.toPublicProfile ? req.user.toPublicProfile() : req.user,
       });
+
+      pushNewMatch(targetId.toString(), {
+        otherName: req.user.name,
+        otherUserId: currentUserId.toString(),
+      }).catch((e) => console.warn('[push] match failed:', e?.message));
     }
 
     res.json({ success: true, matchId: match._id.toString() });
@@ -203,6 +215,14 @@ router.post('/send-media', protect, uploadMedia.single('media'), async (req, res
     // Emit to receiver via socket
     const io = req.app.get('io');
     io.to(receiverId).emit('receive_message', payload);
+
+    // Push notification for the media message (spark / first hi from a
+    // brand-new conversation). Fire-and-forget.
+    require('../utils/push').pushNewMessage(receiverId.toString(), {
+      senderName: populated.sender?.name,
+      mediaType: resolvedType,
+      matchId: matchId.toString(),
+    }).catch((e) => console.warn('[push] media msg failed:', e?.message));
 
     res.json({ success: true, message: payload });
   } catch (err) {

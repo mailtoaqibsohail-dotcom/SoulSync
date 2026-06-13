@@ -201,6 +201,57 @@ export const NotificationProvider = ({ children }) => {
     };
   }, [socket, user, addNotification, incrementUnread]);
 
+  // ── Native call-screen bridge ──────────────────────────
+  // The Android IncomingCallActivity (full-screen ringer over the lockscreen)
+  // launches MainActivity with extras when the user taps Accept or Decline.
+  // MainActivity injects window.SparkIncomingCall and dispatches this event.
+  // We translate that into the same acceptCall / rejectCall flow used by the
+  // in-app modal.
+  useEffect(() => {
+    const handler = (e) => {
+      const detail = e?.detail || window.SparkIncomingCall || {};
+      const { action, matchId, callerId } = detail;
+      if (!action) return;
+
+      if (action === 'answer') {
+        // Foreground / warm-socket case: the offer landed on the socket
+        // before the user tapped Accept, so acceptCall picks it up.
+        if (incomingCall || pendingOffer) {
+          acceptCall();
+        } else if (matchId && user) {
+          // Cold-start: socket hasn't received the offer yet (or app was
+          // just launched). Navigate to the call page in callee mode and
+          // let it pick up the offer once it arrives.
+          navigate(`/call/${matchId}?type=audio&userId=${user._id}&peerId=${callerId || ''}&caller=false`);
+        }
+      } else if (action === 'reject') {
+        if (incomingCall) {
+          rejectCall();
+        } else if (callerId && matchId && socket) {
+          socket.emit('call:reject', { to: callerId, matchId });
+        }
+      } else if (action === 'reject-and-chat') {
+        // "Message" button on the call screen — reject the ringing call
+        // and open the chat thread so the user can fire off a quick reply.
+        if (incomingCall) {
+          rejectCall();
+        } else if (callerId && matchId && socket) {
+          socket.emit('call:reject', { to: callerId, matchId });
+        }
+        if (matchId) navigate(`/chat/${matchId}`);
+      }
+
+      try { delete window.SparkIncomingCall; } catch { /* */ }
+    };
+
+    window.addEventListener('spark:incoming-call-action', handler);
+    // Replay in case the native side fired the event before this listener
+    // was attached (very common on cold start).
+    if (window.SparkIncomingCall) handler({ detail: window.SparkIncomingCall });
+
+    return () => window.removeEventListener('spark:incoming-call-action', handler);
+  }, [incomingCall, acceptCall, rejectCall, socket, navigate, user]);
+
   return (
     <NotificationContext.Provider value={{
       notifications, unreadNotifications, unreadMessages,

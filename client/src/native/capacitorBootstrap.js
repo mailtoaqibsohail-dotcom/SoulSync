@@ -1,17 +1,15 @@
 // Capacitor-native bootstrap. No-op in the browser build; only does work
 // when the app runs inside the Android (or iOS) wrapper.
 //
-// What this does:
-//   1. Asks the OS for push-notification permission and registers an FCM
-//      token. The token is POSTed to /api/users/push-token so the server
-//      can target the device when sending pushes.
-//   2. Listens for taps on incoming pushes and routes the user to the
-//      relevant screen (chat, match, etc).
-//   3. Hides the native splash on first paint.
-//
-// On the web, none of this runs — `Capacitor.isNativePlatform()` is false.
+// Static imports (not dynamic) — chunk-loading inside the WebView's
+// https://localhost origin has been flaky in past sessions, and statics
+// just bundle into the main chunk safely.
 
 import axios from 'axios';
+import { Capacitor } from '@capacitor/core';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { PushNotifications } from '@capacitor/push-notifications';
 
 let bootstrapped = false;
 
@@ -19,31 +17,25 @@ export async function initCapacitor() {
   if (bootstrapped) return;
   bootstrapped = true;
 
-  let Capacitor;
-  try {
-    ({ Capacitor } = await import('@capacitor/core'));
-  } catch {
-    return; // Capacitor not installed — web build, nothing to do.
-  }
   if (!Capacitor?.isNativePlatform?.()) return;
 
   // Splash screen — fade out as soon as React has mounted.
   try {
-    const { SplashScreen } = await import('@capacitor/splash-screen');
-    SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {});
-  } catch { /* plugin missing is fine */ }
+    await SplashScreen.hide({ fadeOutDuration: 200 });
+  } catch (e) { console.warn('[boot] splash hide failed:', e?.message); }
 
   // Status bar — match dark app theme.
   try {
-    const { StatusBar, Style } = await import('@capacitor/status-bar');
-    StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-    StatusBar.setBackgroundColor({ color: '#0d0d0d' }).catch(() => {});
-  } catch { /* */ }
+    await StatusBar.setStyle({ style: Style.Dark });
+    await StatusBar.setBackgroundColor({ color: '#0d0d0d' });
+  } catch (e) { console.warn('[boot] status bar failed:', e?.message); }
 
-  // Push notifications.
+  // Push notifications — request permission, register, persist FCM token.
+  // Auto-detected: we try register() but swallow the IllegalStateException
+  // that fires when google-services.json hasn't been added yet. This lets
+  // the same APK work with-or-without Firebase, so testers can run it
+  // before the Firebase setup is finished.
   try {
-    const { PushNotifications } = await import('@capacitor/push-notifications');
-
     const perm = await PushNotifications.checkPermissions();
     let granted = perm.receive === 'granted';
     if (!granted) {
@@ -52,18 +44,13 @@ export async function initCapacitor() {
     }
     if (!granted) return;
 
-    await PushNotifications.register();
-
     PushNotifications.addListener('registration', async (token) => {
-      // FCM token. Persist it so the server can push to this device.
       try {
         await axios.post('/api/users/push-token', {
           token: token.value,
           platform: 'android',
         });
-      } catch (err) {
-        // No auth yet (logged out) — we'll retry after login via the
-        // post-login hook. For now, stash it.
+      } catch {
         try { localStorage.setItem('pending_push_token', token.value); } catch { /* */ }
       }
     });
@@ -72,23 +59,47 @@ export async function initCapacitor() {
       console.warn('[push] registration error:', err);
     });
 
-    // Tap on a push notification → deep-link into the app.
     PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
       const data = action.notification?.data || {};
-      if (data.matchId) {
-        window.location.hash = ''; // ensure no stale hash
+      if (data.kind === 'call' && data.matchId) {
+        // Calls land in the chat — the active CallContext will pick up
+        // the incoming-call socket event when the page mounts.
+        window.location.assign(`/chat/${data.matchId}`);
+      } else if (data.matchId) {
         window.location.assign(`/chat/${data.matchId}`);
       } else if (data.userId) {
         window.location.assign(`/profile/${data.userId}`);
       }
     });
-  } catch (err) {
-    console.warn('[push] init failed:', err);
+
+    // Foreground delivery: when a push arrives while the app is open,
+    // Android still pops the system banner. Suppress it if the user is
+    // already looking at that chat thread — they're getting the message
+    // through the live socket already, a banner on top would be noise.
+    PushNotifications.addListener('pushNotificationReceived', (notif) => {
+      try {
+        const data = notif?.data || {};
+        if (data.kind === 'message' && data.matchId) {
+          const onThisChat = window.location.pathname === `/chat/${data.matchId}`;
+          if (onThisChat) {
+            // No public API to cancel the banner from JS, but we can at
+            // least dismiss it from the tray a tick later.
+            setTimeout(() => {
+              PushNotifications.removeAllDeliveredNotifications().catch(() => {});
+            }, 50);
+          }
+        }
+      } catch { /* never let a banner break the app */ }
+    });
+
+    await PushNotifications.register();
+  } catch (e) {
+    console.warn('[push] init failed:', e?.message);
   }
 }
 
 // Helper called from AuthContext after a successful login — flushes any
-// FCM token that was captured before the user was authenticated.
+// FCM token captured before the user was authenticated.
 export async function flushPendingPushToken() {
   try {
     const t = localStorage.getItem('pending_push_token');

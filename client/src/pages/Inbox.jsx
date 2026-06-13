@@ -9,6 +9,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useSocket } from '../context/SocketContext';
+import { readCache, writeCache } from '../utils/localCache';
 import Chat from './Chat';
 import { DEFAULT_AVATAR } from '../utils/defaults';
 import './Inbox.css';
@@ -33,8 +34,10 @@ const Inbox = () => {
   const { unreadMessages } = useNotifications();
   const { socket } = useSocket();
 
-  const [matches, setMatches] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Stale-while-revalidate: paint the cached matches list synchronously on
+  // mount so opening Inbox feels instant on Android (no spinner flash).
+  const [matches, setMatches] = useState(() => readCache('matches') || []);
+  const [loading, setLoading] = useState(() => !readCache('matches'));
   const [selectedId, setSelectedId] = useState(matchIdFromUrl || null);
   const [query, setQuery] = useState('');
   const [activeMatch, setActiveMatch] = useState(null);
@@ -48,12 +51,15 @@ const Inbox = () => {
   });
   const isDesktop = useIsDesktop();
 
-  // Load conversation list once on mount. The active chat's message list
-  // lives inside the embedded <Chat> and is surfaced to us via onMessagesChange
-  // so the right-hand media grid stays in sync.
+  // Revalidate the conversation list on mount. If we already painted from
+  // cache this happens silently in the background; otherwise the spinner
+  // shows until the response arrives.
   useEffect(() => {
     axios.get('/api/matches')
-      .then(({ data }) => setMatches(data.matches))
+      .then(({ data }) => {
+        setMatches(data.matches);
+        writeCache('matches', data.matches);
+      })
       .catch((err) => console.error('Load matches error:', err))
       .finally(() => setLoading(false));
   }, []);
@@ -67,7 +73,10 @@ const Inbox = () => {
 
     const refetch = () => {
       axios.get('/api/matches')
-        .then(({ data }) => setMatches(data.matches))
+        .then(({ data }) => {
+          setMatches(data.matches);
+          writeCache('matches', data.matches);
+        })
         .catch((err) => console.error('Refetch matches error:', err));
     };
 
@@ -91,7 +100,9 @@ const Inbox = () => {
           },
           lastActivity: msg.createdAt || new Date().toISOString(),
         };
-        return [updated, ...prev.slice(0, idx), ...prev.slice(idx + 1)];
+        const next = [updated, ...prev.slice(0, idx), ...prev.slice(idx + 1)];
+        writeCache('matches', next);
+        return next;
       });
     };
 

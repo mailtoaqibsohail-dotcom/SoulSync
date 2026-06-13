@@ -1,6 +1,7 @@
 const Message = require('../models/Message');
 const Match = require('../models/Match');
 const User = require('../models/User');
+const { pushNewMessage, pushIncomingCall, pushCancelCall } = require('../utils/push');
 
 // Map: userId → socketId (for direct delivery)
 const onlineUsers = new Map();
@@ -121,6 +122,16 @@ const initSocket = (io) => {
 
         // Confirm delivery to sender — client uses this to replace the optimistic message
         socket.emit('message_sent', payload);
+
+        // Push notification to the receiver. Fire-and-forget — never block
+        // the socket response on FCM. The Capacitor JS handler will suppress
+        // the visible banner if the user is currently on this chat thread.
+        pushNewMessage(receiverId.toString(), {
+          senderName: populated.sender?.name,
+          text,
+          mediaType,
+          matchId: matchId.toString(),
+        }).catch((e) => console.warn('[push] message failed:', e?.message));
 
         // If we were able to mark delivered above, tell the sender to paint
         // two ticks. Otherwise they'll get a 'message_delivered' event later
@@ -249,8 +260,30 @@ const initSocket = (io) => {
     });
 
     // ── WebRTC Call Signaling ─────────────────────────────
-    socket.on('call:offer', ({ to, offer, matchId, callType, from, fromName }) => {
+    socket.on('call:offer', async ({ to, offer, matchId, callType, from, fromName, fromPhoto }) => {
       io.to(to).emit('call:offer', { offer, from, matchId, callType, fromName });
+
+      // Look up the caller photo if not provided — the native call screen
+      // wants an avatar to show alongside the name.
+      let callerPhoto = fromPhoto;
+      if (!callerPhoto && from) {
+        try {
+          const u = await User.findById(from).select('profilePhoto').lean();
+          callerPhoto = u?.profilePhoto || '';
+        } catch { /* ignore — photo is cosmetic */ }
+      }
+
+      // Push the callee — important when their app isn't open. We fire
+      // a high-priority FCM data-only message on the 'calls' channel so the
+      // device wakes from Doze and our native MessagingService can render
+      // the full-screen ringing UI.
+      pushIncomingCall(to, {
+        callerName: fromName,
+        callType,
+        matchId,
+        callerId: from,
+        callerPhoto,
+      }).catch((e) => console.warn('[push] call failed:', e?.message));
     });
 
     socket.on('call:answer', ({ to, answer, matchId }) => {
@@ -263,6 +296,9 @@ const initSocket = (io) => {
 
     socket.on('call:end', ({ to, matchId }) => {
       io.to(to).emit('call:ended', { matchId });
+      // Caller hung up — also push a cancel to the callee in case they
+      // still have the native ringer up (locked phone / app closed).
+      pushCancelCall(to, { matchId }).catch(() => {});
     });
 
     socket.on('call:reject', ({ to, matchId }) => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { readCache, writeCache } from '../utils/localCache';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FiArrowLeft, FiMapPin, FiMessageCircle, FiX } from 'react-icons/fi';
@@ -11,8 +12,10 @@ const ViewProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { openChat } = useChatPopup();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Hydrate the previously-viewed copy of this profile instantly so a
+  // re-tap on the same user opens to a populated screen, not a spinner.
+  const [profile, setProfile] = useState(() => readCache(`profile:${id}`));
+  const [loading, setLoading] = useState(() => !readCache(`profile:${id}`));
   const [photoIndex, setPhotoIndex] = useState(0);
   const [matchId, setMatchId] = useState(null);
   const [starting, setStarting] = useState(false);
@@ -67,6 +70,7 @@ const ViewProfile = () => {
           axios.get('/api/matches'),
         ]);
         setProfile(profileRes.data.user);
+        writeCache(`profile:${id}`, profileRes.data.user);
 
         // If a conversation already exists, reuse it (no need to call /start)
         const found = matchesRes.data.matches.find((m) => m.user._id === id);

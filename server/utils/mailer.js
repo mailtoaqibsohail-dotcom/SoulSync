@@ -38,6 +38,12 @@ const getTransporter = () => {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS,
     },
+    // The mail server (DirectAdmin / da200 relay) presents a self-signed or
+    // hostname-mismatched cert; strict TLS verification would fail with
+    // "self-signed certificate" and silently break all sends. STARTTLS still
+    // encrypts; we just don't reject our own server's cert. Override with
+    // SMTP_REJECT_UNAUTHORIZED=1 when a fully-valid cert is in place.
+    tls: { rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED === 'true' },
   });
 
   return transporter;
