@@ -18,7 +18,6 @@ export const NotificationProvider = ({ children }) => {
 
   const [notifications, setNotifications] = useState([]);
   const [unreadMessages, setUnreadMessages] = useState({}); // { matchId: count }
-  const [matchPopup, setMatchPopup] = useState(null);
   const [incomingCall, setIncomingCall] = useState(null);   // { from, fromName, callType, matchId }
 
   const ringtoneRef = useRef(null);
@@ -155,7 +154,8 @@ export const NotificationProvider = ({ children }) => {
     };
 
     const onNewMatch = (data) => {
-      setMatchPopup(data);
+      // No "It's a Match!" popup — the conversation goes straight to the inbox
+      // (Inbox.jsx refetches on new_match) and a notification lands in the bell.
       addNotification({ type: 'match', text: `You matched with ${data.user?.name}!`, user: data.user, matchId: data.matchId });
     };
 
@@ -255,7 +255,7 @@ export const NotificationProvider = ({ children }) => {
   return (
     <NotificationContext.Provider value={{
       notifications, unreadNotifications, unreadMessages,
-      totalUnreadMessages, matchPopup, setMatchPopup,
+      totalUnreadMessages,
       addNotification, markAllRead, incrementUnread, clearUnread,
       incomingCall, acceptCall, rejectCall,
     }}>

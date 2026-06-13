@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FiBell, FiHeart, FiMessageCircle, FiX } from 'react-icons/fi';
+import { FiBell, FiHeart, FiMessageCircle } from 'react-icons/fi';
 import { useNotifications } from '../context/NotificationContext';
 import { useNavigate } from 'react-router-dom';
 import './NotificationBell.css';
 
 const NotificationBell = () => {
-  const { notifications, unreadNotifications, matchPopup, setMatchPopup, markAllRead } = useNotifications();
+  const { notifications, unreadNotifications, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const navigate = useNavigate();
@@ -72,29 +72,6 @@ const NotificationBell = () => {
           </div>
         )}
       </div>
-
-      {/* Match Popup */}
-      {matchPopup && (
-        <div className="match-overlay" onClick={() => setMatchPopup(null)}>
-          <div className="match-popup card" onClick={(e) => e.stopPropagation()}>
-            <button className="match-popup__close" onClick={() => setMatchPopup(null)}><FiX size={20} /></button>
-            <div className="match-popup__hearts">💘</div>
-            <h2 className="gradient-text">It's a Match!</h2>
-            <p>You and <strong>{matchPopup.user?.name}</strong> liked each other</p>
-            {matchPopup.user?.profilePhoto && (
-              <img src={matchPopup.user.profilePhoto} alt="" className="match-popup__avatar" />
-            )}
-            <div className="match-popup__actions">
-              <button className="btn-primary" onClick={() => { navigate(`/chat/${matchPopup.matchId}`); setMatchPopup(null); }}>
-                💬 Send a message
-              </button>
-              <button className="btn-outline" style={{ marginTop: 10 }} onClick={() => setMatchPopup(null)}>
-                Keep swiping
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };
