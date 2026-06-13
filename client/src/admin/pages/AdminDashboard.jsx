@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import adminApi from '../adminApi';
 
 const StatCard = ({ label, value, accent, sub }) => (
@@ -32,15 +32,43 @@ const BarList = ({ rows, total, color }) => {
 };
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [growth, setGrowth] = useState([]);
+  const [flagged, setFlagged] = useState([]);
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const loadFlagged = () => adminApi.get('/api/admin/flagged', { params: { limit: 8 } })
+    .then(({ data }) => setFlagged(data.items || [])).catch(() => {});
 
   useEffect(() => {
     adminApi.get('/api/admin/stats').then(({ data }) => setStats(data))
       .catch((err) => setError(err.response?.data?.message || 'Failed to load stats'));
     adminApi.get('/api/admin/stats/growth').then(({ data }) => setGrowth(data.days || [])).catch(() => {});
+    loadFlagged();
   }, []);
+
+  const suspend = async (u) => {
+    const reason = window.prompt(`Suspend ${u.name}? Reason (optional):`, '');
+    if (reason === null) return;
+    setBusy(true);
+    try {
+      await adminApi.patch(`/api/admin/users/${u._id}`, { isActive: false, banReason: reason });
+      await loadFlagged();
+    } catch (err) { setError(err.response?.data?.message || 'Suspend failed'); }
+    finally { setBusy(false); }
+  };
+
+  const del = async (u) => {
+    if (!window.confirm(`Permanently delete ${u.name} (@${u.username}) and all their data? This cannot be undone.`)) return;
+    setBusy(true);
+    try {
+      await adminApi.delete(`/api/admin/users/${u._id}`);
+      await loadFlagged();
+    } catch (err) { setError(err.response?.data?.message || 'Delete failed'); }
+    finally { setBusy(false); }
+  };
 
   const g = stats?.gender || {};
   const genderRows = [
@@ -67,6 +95,48 @@ const AdminDashboard = () => {
         <StatCard label="New today" value={stats?.users.newToday} />
         <StatCard label="New (7 days)" value={stats?.users.new7d} />
         <StatCard label="Banned" value={stats ? stats.users.total - stats.users.active : null} />
+        <StatCard label="Flagged (reported)" value={stats?.flagged.any} accent sub={stats ? `${stats.flagged.multi} by 2+ people` : null} />
+      </div>
+
+      {/* Flagged users — surfaced automatically, most-reported first */}
+      <div className="admin-card">
+        <h2 className="admin-h2" style={{ marginTop: 0 }}>
+          🚩 Flagged users {flagged.length > 0 && <span className="admin-count">{flagged.length}</span>}
+        </h2>
+        {flagged.length === 0 ? (
+          <div className="admin-empty" style={{ padding: 8 }}>No reported users 🎉</div>
+        ) : (
+          <table className="admin-table">
+            <thead>
+              <tr><th>User</th><th>Reported by</th><th>Reports</th><th>Reasons</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {flagged.map((f) => (
+                <tr key={f.user._id} className={f.distinctReporters >= 3 ? 'admin-row-danger' : ''}>
+                  <td className="admin-row-link" onClick={() => navigate(`/admin/users/${f.user._id}`)}>
+                    <div className="admin-user-cell">
+                      {f.user.profilePhoto ? <img src={f.user.profilePhoto} alt="" /> : <span className="admin-avatar-fallback">{(f.user.name || '?')[0]}</span>}
+                      <div>
+                        <div className="admin-user-name">{f.user.name}</div>
+                        <div className="admin-user-handle">@{f.user.username}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span className={`admin-pill ${f.distinctReporters >= 3 ? 'admin-pill-red' : f.distinctReporters >= 2 ? 'admin-pill-gold' : ''}`}>{f.distinctReporters} {f.distinctReporters === 1 ? 'person' : 'people'}</span></td>
+                  <td>{f.reportCount}{f.pending ? ` (${f.pending} pending)` : ''}</td>
+                  <td className="admin-details-cell">{f.topReasons.map((r) => `${r.reason}×${r.n}`).join(', ')}</td>
+                  <td><span className={`admin-pill ${f.user.isActive ? 'admin-pill-green' : 'admin-pill-red'}`}>{f.user.isActive ? 'active' : 'suspended'}</span></td>
+                  <td>
+                    <div className="admin-actions">
+                      {f.user.isActive && <button className="admin-btn admin-btn-sm" disabled={busy} onClick={() => suspend(f.user)}>Suspend</button>}
+                      <button className="admin-btn admin-btn-sm admin-btn-danger" disabled={busy} onClick={() => del(f.user)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Gender ratio — #1 health signal */}

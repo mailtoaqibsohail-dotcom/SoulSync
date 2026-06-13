@@ -6,7 +6,7 @@ const AdminUsers = () => {
   const navigate = useNavigate();
   const [data, setData] = useState({ items: [], total: 0, page: 1, pages: 1 });
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState({ status: '', plan: '', verified: '', sort: 'newest' });
+  const [filters, setFilters] = useState({ status: '', plan: '', verified: '', sort: 'newest', flagged: '' });
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -22,6 +22,7 @@ const AdminUsers = () => {
       if (filters.status) params.status = filters.status;
       if (filters.plan) params.plan = filters.plan;
       if (filters.verified) params.verified = filters.verified;
+      if (filters.flagged) params.flagged = filters.flagged;
       const { data } = await adminApi.get('/api/admin/users', { params });
       setData(data);
       setSelected(new Set());
@@ -44,6 +45,24 @@ const AdminUsers = () => {
   });
   const toggleAll = () => setSelected((s) =>
     s.size === data.items.length ? new Set() : new Set(data.items.map((u) => u._id)));
+
+  const suspend = async (e, u) => {
+    e.stopPropagation();
+    const reason = window.prompt(`Suspend ${u.name}? Reason (optional):`, '');
+    if (reason === null) return;
+    setWorking(true);
+    try { await adminApi.patch(`/api/admin/users/${u._id}`, { isActive: false, banReason: reason }); await load(); }
+    catch (err) { setError(err.response?.data?.message || 'Suspend failed'); }
+    finally { setWorking(false); }
+  };
+  const del = async (e, u) => {
+    e.stopPropagation();
+    if (!window.confirm(`Permanently delete ${u.name} (@${u.username}) and all their data?`)) return;
+    setWorking(true);
+    try { await adminApi.delete(`/api/admin/users/${u._id}`); await load(); }
+    catch (err) { setError(err.response?.data?.message || 'Delete failed'); }
+    finally { setWorking(false); }
+  };
 
   const bulk = async (action) => {
     if (!selected.size) return;
@@ -82,9 +101,13 @@ const AdminUsers = () => {
         <select value={filters.verified} onChange={(e) => setFilter('verified', e.target.value)}>
           <option value="">Any verification</option><option value="true">Verified</option><option value="false">Unverified</option>
         </select>
+        <select value={filters.flagged} onChange={(e) => setFilter('flagged', e.target.value)}>
+          <option value="">All users</option><option value="true">🚩 Flagged only</option>
+        </select>
         <select value={filters.sort} onChange={(e) => setFilter('sort', e.target.value)}>
           <option value="newest">Newest</option><option value="oldest">Oldest</option>
           <option value="lastSeen">Last seen</option><option value="name">Name A–Z</option>
+          <option value="reports">Most reported</option>
         </select>
       </div>
 
@@ -105,7 +128,7 @@ const AdminUsers = () => {
             <th style={{ width: 32 }}>
               <input type="checkbox" checked={data.items.length > 0 && selected.size === data.items.length} onChange={toggleAll} />
             </th>
-            <th>User</th><th>Email</th><th>Plan</th><th>Status</th><th>Verified</th><th>Joined</th>
+            <th>User</th><th>Email</th><th>Plan</th><th>Status</th><th>Reports</th><th>Joined</th><th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -126,11 +149,21 @@ const AdminUsers = () => {
               <td onClick={() => navigate(`/admin/users/${u._id}`)}>{u.email}</td>
               <td onClick={() => navigate(`/admin/users/${u._id}`)}><span className={`admin-pill ${u.plan === 'premium' ? 'admin-pill-gold' : ''}`}>{u.plan}</span></td>
               <td onClick={() => navigate(`/admin/users/${u._id}`)}><span className={`admin-pill ${u.isActive ? 'admin-pill-green' : 'admin-pill-red'}`}>{u.isActive ? 'active' : 'banned'}</span></td>
-              <td onClick={() => navigate(`/admin/users/${u._id}`)}>{u.isVerified ? '✓' : '—'}</td>
+              <td onClick={() => navigate(`/admin/users/${u._id}`)}>
+                {u.reportCount > 0
+                  ? <span className={`admin-pill ${u.distinctReporters >= 3 ? 'admin-pill-red' : u.distinctReporters >= 2 ? 'admin-pill-gold' : ''}`} title={`${u.distinctReporters} distinct reporters`}>🚩 {u.distinctReporters}</span>
+                  : <span className="admin-user-handle">—</span>}
+              </td>
               <td onClick={() => navigate(`/admin/users/${u._id}`)}>{new Date(u.createdAt).toLocaleDateString()}</td>
+              <td onClick={(e) => e.stopPropagation()}>
+                <div className="admin-actions">
+                  {u.isActive && <button className="admin-btn admin-btn-sm" disabled={working} onClick={(e) => suspend(e, u)}>Suspend</button>}
+                  <button className="admin-btn admin-btn-sm admin-btn-danger" disabled={working} onClick={(e) => del(e, u)}>Delete</button>
+                </div>
+              </td>
             </tr>
           ))}
-          {!loading && data.items.length === 0 && <tr><td colSpan={7} className="admin-empty">No users found</td></tr>}
+          {!loading && data.items.length === 0 && <tr><td colSpan={8} className="admin-empty">No users found</td></tr>}
         </tbody>
       </table>
 

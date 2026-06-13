@@ -99,7 +99,7 @@ router.get('/stats', async (req, res) => {
     const [
       totalUsers, activeUsers, onlineNow, verifiedUsers, newToday, new7d,
       planAgg, totalMatches, totalSwipes, totalMessages, pendingReports,
-      dau, wau, genderAgg, ageBuckets, noPhotos, noBio, topCities, matchesWithMsgAgg,
+      dau, wau, genderAgg, ageBuckets, noPhotos, noBio, topCities, matchesWithMsgAgg, flaggedAgg,
     ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ isActive: true }),
@@ -135,6 +135,12 @@ router.get('/stats', async (req, res) => {
       ]),
       // Matches that have at least one message (core-loop health)
       Message.aggregate([{ $group: { _id: '$matchId' } }, { $count: 'n' }]),
+      // Flagged users — reported by ≥1 person (any) and by ≥2 distinct people (multi)
+      Report.aggregate([
+        { $group: { _id: '$reported', reporters: { $addToSet: '$reporter' } } },
+        { $addFields: { dr: { $size: '$reporters' } } },
+        { $group: { _id: null, any: { $sum: 1 }, multi: { $sum: { $cond: [{ $gte: ['$dr', 2] }, 1, 0] } } } },
+      ]),
     ]);
 
     const plans = { free: 0, premium: 0 };
@@ -150,6 +156,7 @@ router.get('/stats', async (req, res) => {
     }));
 
     const matchesWithMessages = matchesWithMsgAgg[0]?.n || 0;
+    const flagged = flaggedAgg[0] || { any: 0, multi: 0 };
 
     res.json({
       users: { total: totalUsers, active: activeUsers, online: onlineNow, verified: verifiedUsers, newToday, new7d, dau, wau },
@@ -168,6 +175,7 @@ router.get('/stats', async (req, res) => {
       swipes: totalSwipes,
       messages: totalMessages,
       pendingReports,
+      flagged: { any: flagged.any, multi: flagged.multi },
     });
   } catch (err) {
     console.error('Admin stats error:', err);
@@ -195,10 +203,15 @@ router.get('/stats/growth', async (req, res) => {
 //  USERS
 // ══════════════════════════════════════════════════════════
 
+const USER_LIST_PROJECT = {
+  name: 1, username: 1, email: 1, phone: 1, plan: 1, planExpiresAt: 1,
+  isActive: 1, isVerified: 1, isOnline: 1, gender: 1, createdAt: 1, lastSeen: 1, profilePhoto: 1,
+};
+
 router.get('/users', async (req, res) => {
   try {
     const { page, limit, skip } = paginate(req);
-    const { search, status, plan, verified, sort } = req.query;
+    const { search, status, plan, verified, sort, flagged } = req.query;
 
     const filter = {};
     if (search) {
@@ -211,22 +224,80 @@ router.get('/users', async (req, res) => {
     if (verified === 'true') filter.isVerified = true;
     if (verified === 'false') filter.isVerified = false;
 
-    const sortMap = {
-      newest: { createdAt: -1 }, oldest: { createdAt: 1 },
-      lastSeen: { lastSeen: -1 }, name: { name: 1 },
-    };
-    const sortBy = sortMap[sort] || sortMap.newest;
+    let items;
+    let total;
 
-    const [items, total] = await Promise.all([
-      User.find(filter)
-        .select('name username email phone plan planExpiresAt isActive isVerified isOnline gender createdAt lastSeen profilePhoto')
-        .sort(sortBy).skip(skip).limit(limit).lean(),
-      User.countDocuments(filter),
-    ]);
+    // When sorting/filtering by reports, join the Report collection so we can
+    // rank by how many DISTINCT people reported each user.
+    if (sort === 'reports' || flagged === 'true') {
+      const pipeline = [
+        { $match: filter },
+        { $lookup: { from: 'reports', localField: '_id', foreignField: 'reported', as: '_r' } },
+        { $addFields: { reportCount: { $size: '$_r' }, distinctReporters: { $size: { $setUnion: ['$_r.reporter', []] } } } },
+        ...(flagged === 'true' ? [{ $match: { reportCount: { $gt: 0 } } }] : []),
+        { $sort: { distinctReporters: -1, reportCount: -1, createdAt: -1 } },
+        { $facet: {
+          items: [{ $skip: skip }, { $limit: limit }, { $project: { ...USER_LIST_PROJECT, reportCount: 1, distinctReporters: 1 } }],
+          total: [{ $count: 'n' }],
+        } },
+      ];
+      const [agg] = await User.aggregate(pipeline);
+      items = agg.items;
+      total = agg.total[0]?.n || 0;
+    } else {
+      const sortMap = { newest: { createdAt: -1 }, oldest: { createdAt: 1 }, lastSeen: { lastSeen: -1 }, name: { name: 1 } };
+      const sortBy = sortMap[sort] || sortMap.newest;
+      [items, total] = await Promise.all([
+        User.find(filter).select(USER_LIST_PROJECT).sort(sortBy).skip(skip).limit(limit).lean(),
+        User.countDocuments(filter),
+      ]);
+      // Attach report counts for the current page.
+      const ids = items.map((u) => u._id);
+      if (ids.length) {
+        const rc = await Report.aggregate([
+          { $match: { reported: { $in: ids } } },
+          { $group: { _id: '$reported', reportCount: { $sum: 1 }, reporters: { $addToSet: '$reporter' } } },
+        ]);
+        const map = {};
+        rc.forEach((r) => { map[String(r._id)] = { reportCount: r.reportCount, distinctReporters: r.reporters.length }; });
+        items = items.map((u) => ({ ...u, reportCount: map[String(u._id)]?.reportCount || 0, distinctReporters: map[String(u._id)]?.distinctReporters || 0 }));
+      }
+    }
+
     res.json({ items, total, page, limit, pages: Math.ceil(total / limit) });
   } catch (err) {
     console.error('Admin users list error:', err);
     res.status(500).json({ message: 'Failed to load users' });
+  }
+});
+
+// Flagged users — anyone with reports, ranked by distinct reporters, with reasons.
+router.get('/flagged', async (req, res) => {
+  try {
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
+    const rows = await Report.aggregate([
+      { $group: { _id: '$reported', reportCount: { $sum: 1 }, reporters: { $addToSet: '$reporter' }, reasons: { $push: '$reason' }, pending: { $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] } } } },
+      { $addFields: { distinctReporters: { $size: '$reporters' } } },
+      { $sort: { distinctReporters: -1, reportCount: -1 } },
+      { $limit: limit },
+      { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+      { $project: {
+        reportCount: 1, distinctReporters: 1, reasons: 1, pending: 1,
+        'user._id': 1, 'user.name': 1, 'user.username': 1, 'user.email': 1, 'user.profilePhoto': 1, 'user.isActive': 1,
+      } },
+    ]);
+    // Summarize reason frequency for each flagged user
+    const items = rows.map((r) => {
+      const counts = {};
+      (r.reasons || []).forEach((x) => { counts[x] = (counts[x] || 0) + 1; });
+      const topReasons = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([reason, n]) => ({ reason, n }));
+      return { user: r.user || null, reportCount: r.reportCount, distinctReporters: r.distinctReporters, pending: r.pending, topReasons };
+    }).filter((r) => r.user); // drop reports whose user was deleted
+    res.json({ items });
+  } catch (err) {
+    console.error('Admin flagged error:', err);
+    res.status(500).json({ message: 'Failed to load flagged users' });
   }
 });
 
@@ -578,7 +649,10 @@ router.get('/audit', async (req, res) => {
 router.get('/settings', async (req, res) => {
   try {
     const s = await getSettings();
-    res.json({ settings: s });
+    // Never echo the raw API key back to the client — expose only whether it's set.
+    const obj = s.toObject();
+    obj.email = { providerApiKey: '', hasApiKey: Boolean(s.email?.providerApiKey) };
+    res.json({ settings: obj });
   } catch (err) {
     console.error('Admin settings get error:', err);
     res.status(500).json({ message: 'Failed to load settings' });
@@ -598,8 +672,10 @@ router.patch('/settings', async (req, res) => {
       if (p.enabled !== undefined) s.payment.enabled = Boolean(p.enabled);
     }
     if (Array.isArray(b.premiumFeatures)) s.premiumFeatures = b.premiumFeatures.map((f) => String(f).slice(0, 60)).filter(Boolean);
-    if (b.email && typeof b.email === 'object' && b.email.providerApiKey !== undefined) {
-      s.email.providerApiKey = String(b.email.providerApiKey).slice(0, 200);
+    // Only overwrite the API key when a non-empty value is sent (blank = keep
+    // existing, so saving other fields doesn't wipe it). Send '__clear__' to remove.
+    if (b.email && typeof b.email === 'object' && b.email.providerApiKey !== undefined && b.email.providerApiKey !== '') {
+      s.email.providerApiKey = b.email.providerApiKey === '__clear__' ? '' : String(b.email.providerApiKey).slice(0, 200);
     }
     s.updatedByEmail = req.admin.email;
     await s.save();

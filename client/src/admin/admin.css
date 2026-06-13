@@ -82,6 +82,8 @@
 .admin-btn-primary { background: var(--gradient, linear-gradient(135deg,#fd5068,#8a05be)); border: none; }
 .admin-btn-danger { background: rgba(253,80,104,.12); border-color: var(--pink, #fd5068); color: var(--pink, #fd5068); }
 .admin-btn-block { width: 100%; margin-top: 8px; }
+.admin-btn-sm { padding: 5px 10px; font-size: 12px; }
+.admin-row-danger td { background: rgba(253, 80, 104, .06); }
 
 /* ── Cards / detail ── */
 .admin-card { background: var(--bg-card, #1a1a1a); border: 1px solid var(--border, #2e2e2e); border-radius: 12px; padding: 18px 20px; margin-bottom: 16px; }
