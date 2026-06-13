@@ -26,6 +26,8 @@ app.set('trust proxy', 1);
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:3000',
   'https://spark.proflowenergy.org',
+  'https://sparkdating.club',
+  'https://www.sparkdating.club',
   'http://localhost',
   'https://localhost',
   'capacitor://localhost',
@@ -68,6 +70,14 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth', authLimiter);
 
+// Admin login — brute-force protection on the credential endpoint only.
+const adminAuthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { message: 'Too many requests, please try again later' },
+});
+app.use('/api/admin/auth', adminAuthLimiter);
+
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
@@ -78,6 +88,7 @@ app.use('/api', generalLimiter);
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/matches', require('./routes/matches'));
+app.use('/api/admin', require('./routes/admin'));
 
 // ── Health check ──────────────────────────────────────────
 app.get('/api/health', (req, res) => {
