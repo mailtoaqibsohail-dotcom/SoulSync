@@ -174,7 +174,6 @@ const AdminDashboard = () => {
         <StatCard label="Matches that chat" value={stats ? `${stats.coreLoop.chatRate}%` : null} accent sub={`${stats?.coreLoop.matchesWithMessages ?? 0} of ${stats?.coreLoop.matches ?? 0}`} />
         <StatCard label="Msgs / match" value={stats?.coreLoop.messagesPerMatch} />
         <StatCard label="Total messages" value={stats?.messages} />
-        <StatCard label="Total swipes" value={stats?.swipes} />
       </div>
 
       <h2 className="admin-h2">Profile completeness</h2>

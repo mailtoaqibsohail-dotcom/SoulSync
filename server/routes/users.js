@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const Swipe = require('../models/Swipe');
 const Report = require('../models/Report');
 const { protect } = require('../middleware/auth');
 const { upload } = require('../config/cloudinary');
@@ -116,17 +115,13 @@ router.get('/discover', protect, async (req, res) => {
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
     const skip = (page - 1) * limit;
 
-    // Exclude self + users I've blocked + users who blocked me + anyone I've
-    // already swiped on (like or dislike) via the Swipe collection.
-    const [blockedMe, mySwipes] = await Promise.all([
-      User.find({ blockedUsers: currentUser._id }).select('_id').lean(),
-      Swipe.find({ from: currentUser._id }).select('to').lean(),
-    ]);
+    // Grindr-style: no swiping, so we DON'T exclude people you've interacted
+    // with — everyone stays browsable. Only hide yourself + blocks (either way).
+    const blockedMe = await User.find({ blockedUsers: currentUser._id }).select('_id').lean();
     const excludeIds = [
       currentUser._id,
       ...(currentUser.blockedUsers || []),
       ...blockedMe.map((u) => u._id),
-      ...mySwipes.map((s) => s.to),
     ];
 
     // Show everyone regardless of when they were last online — the card shows

@@ -3,90 +3,13 @@ const router = express.Router();
 const User = require('../models/User');
 const Match = require('../models/Match');
 const Message = require('../models/Message');
-const Swipe = require('../models/Swipe');
 const { protect } = require('../middleware/auth');
 const { uploadMedia, cloudinary } = require('../config/cloudinary');
 const { pushNewMatch } = require('../utils/push');
 
-// ── POST /api/matches/like/:userId ────────────────────────
-router.post('/like/:userId', protect, async (req, res) => {
-  try {
-    const targetId = req.params.userId;
-    const currentUserId = req.user._id;
-
-    if (targetId === currentUserId.toString()) {
-      return res.status(400).json({ message: 'Cannot like yourself' });
-    }
-
-    const targetUser = await User.findById(targetId);
-    if (!targetUser) return res.status(404).json({ message: 'User not found' });
-
-    // Record the like as a Swipe doc (upsert so re-liking is idempotent)
-    await Swipe.findOneAndUpdate(
-      { from: currentUserId, to: targetId },
-      { from: currentUserId, to: targetId, action: 'like' },
-      { upsert: true, new: true }
-    );
-
-    // Check if the other person already liked us — mutual match!
-    const reciprocal = await Swipe.findOne({
-      from: targetId,
-      to: currentUserId,
-      action: 'like',
-    }).lean();
-    const isMatch = !!reciprocal;
-
-    if (isMatch) {
-      // Create match record
-      const match = await Match.create({
-        users: [currentUserId, targetId],
-        initiator: currentUserId,
-      });
-
-      // Add each other to matches array
-      await User.findByIdAndUpdate(currentUserId, {
-        $addToSet: { matches: targetId },
-      });
-      await User.findByIdAndUpdate(targetId, {
-        $addToSet: { matches: currentUserId },
-      });
-
-      // Emit socket event (handled in socket/index.js)
-      req.app.get('io').to(targetId.toString()).emit('new_match', {
-        matchId: match._id,
-        user: req.user.toPublicProfile ? req.user.toPublicProfile() : req.user,
-      });
-
-      // Push notification — the "It's a match!" banner.
-      pushNewMatch(targetId.toString(), {
-        otherName: req.user.name,
-        otherUserId: currentUserId.toString(),
-      }).catch((e) => console.warn('[push] match failed:', e?.message));
-
-      return res.json({ success: true, isMatch: true, matchId: match._id });
-    }
-
-    res.json({ success: true, isMatch: false });
-  } catch (err) {
-    console.error('Like error:', err);
-    res.status(500).json({ message: 'Error processing like' });
-  }
-});
-
-// ── POST /api/matches/dislike/:userId ─────────────────────
-router.post('/dislike/:userId', protect, async (req, res) => {
-  try {
-    await Swipe.findOneAndUpdate(
-      { from: req.user._id, to: req.params.userId },
-      { from: req.user._id, to: req.params.userId, action: 'dislike' },
-      { upsert: true, new: true }
-    );
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Dislike error:', err);
-    res.status(500).json({ message: 'Error processing dislike' });
-  }
-});
+// NOTE: This app is Grindr-style — there is NO swiping/liking. The old
+// /like and /dislike (mutual-match) endpoints were removed. Conversations
+// start directly via POST /start/:userId below (tap profile → Message).
 
 // ── POST /api/matches/start/:userId ───────────────────────
 // Grindr-style: open a conversation with any user without requiring a mutual like.
