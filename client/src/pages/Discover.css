@@ -404,6 +404,18 @@
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
+/* Online / last-seen status line in the tile overlay */
+.discover-tile__status {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 2px;
+}
+.discover-tile__status.is-online {
+  color: #3ddc84;
+}
+
 /* Distance pill top-left */
 .discover-tile__distance {
   position: absolute;

@@ -129,14 +129,10 @@ router.get('/discover', protect, async (req, res) => {
       ...mySwipes.map((s) => s.to),
     ];
 
-    // 3-hour activity rule — hide users who are offline AND haven't been seen
-    // in the last 3 hours. Keeps Discover fresh. Bypassed if an explicit
-    // showAll=1 flag is passed (admin/debug).
-    const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
-    const activeSince = new Date(Date.now() - THREE_HOURS_MS);
-    const activityFilter = req.query.showAll === '1'
-      ? {}
-      : { $or: [{ isOnline: true }, { lastSeen: { $gte: activeSince } }] };
+    // Show everyone regardless of when they were last online — the card shows
+    // their online status / last-seen time, so users stay in Discover instead
+    // of disappearing after a few hours of inactivity.
+    const activityFilter = {};
 
     const projectStage = {
       $project: {

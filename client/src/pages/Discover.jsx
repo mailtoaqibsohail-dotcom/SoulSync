@@ -242,6 +242,17 @@ const Discover = () => {
     return `${Math.round(km)} km`;
   };
 
+  // "Online" if currently online, else a short "active Xm/h/d ago" from lastSeen.
+  const formatLastSeen = (date) => {
+    if (!date) return '';
+    const diff = Math.floor((Date.now() - new Date(date)) / 1000);
+    if (diff < 60) return 'Active now';
+    if (diff < 3600) return `Active ${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `Active ${Math.floor(diff / 3600)}h ago`;
+    if (diff < 604800) return `Active ${Math.floor(diff / 86400)}d ago`;
+    return `Active ${Math.floor(diff / 604800)}w ago`;
+  };
+
   return (
     <div className="discover-page">
       <div className="discover-header">
@@ -597,6 +608,9 @@ const Discover = () => {
                   {age != null && (
                     <span className="discover-tile__age">{age}</span>
                   )}
+                  <span className={`discover-tile__status ${u.isOnline ? 'is-online' : ''}`}>
+                    {u.isOnline ? 'Online now' : formatLastSeen(u.lastSeen)}
+                  </span>
                 </div>
               </button>
             );
