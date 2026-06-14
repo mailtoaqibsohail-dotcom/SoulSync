@@ -80,7 +80,10 @@ router.get('/discover', protect, async (req, res) => {
     const distanceKm = Number.isFinite(qDistance) && qDistance > 0
       ? qDistance
       : (prefs.distance || 50);
-    const maxDistance = distanceKm * 1000; // km → metres
+    // 500 km (the slider's max) means "Unlimited" → search the whole planet
+    // (~20,100 km is the farthest two points on Earth can be).
+    const GLOBAL_RADIUS_M = 20100 * 1000;
+    const maxDistance = distanceKm >= 500 ? GLOBAL_RADIUS_M : distanceKm * 1000;
 
     const ageRange = prefs.ageRange || {};
     const minAge = Number.isFinite(qMinAge) ? qMinAge : (ageRange.min ?? 18);
@@ -200,7 +203,7 @@ router.get('/discover', protect, async (req, res) => {
       qHobbies.length > 0;
 
     if (users.length === 0 && !userAppliedFilters && page === 1) {
-      users = await runSearch(500 * 1000 /* 500 km */, {
+      users = await runSearch(GLOBAL_RADIUS_M /* whole planet */, {
         _id: { $nin: excludeIds },
         isActive: true,
         isVerified: true,
@@ -267,9 +270,8 @@ router.get('/search', protect, async (req, res) => {
           $geoNear: {
             near: { type: 'Point', coordinates: [userLng, userLat] },
             distanceField: 'distance',
-            // FIX: 500 km so we don't cut off smaller cities / rural areas.
-            // Client can scroll; the list is already sorted closest-first.
-            maxDistance: 500 * 1000,
+            // No distance cap — return everyone, sorted closest-first.
+            maxDistance: 20100 * 1000, // whole planet
             spherical: true,
             query,
           },

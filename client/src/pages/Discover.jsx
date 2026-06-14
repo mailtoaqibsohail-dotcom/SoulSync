@@ -393,7 +393,7 @@ const Discover = () => {
                 <div className="filter-group__label-row">
                   <label>Distance</label>
                   <span className="filter-group__value">
-                    {draftFilters.distanceKm} km
+                    {draftFilters.distanceKm >= 500 ? 'Unlimited' : `${draftFilters.distanceKm} km`}
                   </span>
                 </div>
                 <input
