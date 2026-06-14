@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { readCache, writeCache } from '../utils/localCache';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FiFilter, FiX, FiRotateCcw } from 'react-icons/fi';
+import { FiX } from 'react-icons/fi';
 import { searchCities } from '../utils/pakistanCities';
 import { DEFAULT_AVATAR } from '../utils/defaults';
 import './Discover.css';
@@ -166,16 +166,12 @@ const Discover = () => {
         params.lng = coords.lng;
         params.lat = coords.lat;
       }
-      if (f) {
-        if (f.minAge !== DEFAULT_FILTERS.minAge) params.minAge = f.minAge;
-        if (f.maxAge !== DEFAULT_FILTERS.maxAge) params.maxAge = f.maxAge;
-        if (f.gender && f.gender !== 'everyone') params.gender = f.gender;
-        if (f.distanceKm && f.distanceKm !== DEFAULT_FILTERS.distanceKm) {
-          params.distanceKm = f.distanceKm;
-        }
-        if (f.city && f.city.trim()) params.city = f.city.trim();
-        if (f.hobbies && f.hobbies.length) params.hobbies = f.hobbies.join(',');
-      }
+      // App is new with few users — no filters for now: show EVERYONE,
+      // unlimited distance, all genders/ages. (Filters can be re-enabled later.)
+      params.distanceKm = 500; // server treats >=500 as worldwide
+      params.gender = 'everyone';
+      params.minAge = 18;
+      params.maxAge = 99;
 
       const { data } = await axios.get('/api/users/discover', { params });
       setUsers(data.users || []);
@@ -257,38 +253,9 @@ const Discover = () => {
     <div className="discover-page">
       <div className="discover-header">
         <h2 className="discover-title">Nearby</h2>
-        <div className="discover-header-actions">
-          <button
-            className={`discover-filter-btn ${activeFilterCount ? 'has-filters' : ''}`}
-            onClick={() => {
-              setDraftFilters(filters);
-              setMinAgeRaw(String(filters.minAge));
-              setMaxAgeRaw(String(filters.maxAge));
-              setShowFilters(true);
-            }}
-            title="Filters"
-          >
-            <FiFilter size={16} />
-            <span>Filters</span>
-            {activeFilterCount > 0 && (
-              <span className="discover-filter-badge">{activeFilterCount}</span>
-            )}
-          </button>
-          {/* Revert filters — resets all filters to defaults and re-fetches.
-              Previously this was a "refresh" button that re-ran the same
-              query, which looked like nothing happened. Now it actually
-              undoes applied filters so the name "revert" is honest. */}
-          <button
-            className="discover-refresh"
-            onClick={handleResetFilters}
-            title="Revert filters"
-            aria-label="Revert filters"
-            disabled={activeFilterCount === 0}
-            style={activeFilterCount === 0 ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
-          >
-            <FiRotateCcw size={16} />
-          </button>
-        </div>
+        {/* Filters removed for now — the app is new with few users, so Discover
+            shows everyone (any distance/age/gender). Re-add the filter button
+            here later; the slide-in panel code below is kept but unused. */}
       </div>
 
       {errorMsg && <div className="discover-error">{errorMsg}</div>}
